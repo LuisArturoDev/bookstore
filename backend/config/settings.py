@@ -35,6 +35,19 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+EXCHANGE_RATE_API_URL = os.environ.get(
+    'EXCHANGE_RATE_API_URL',
+    'https://api.exchangerate-api.com/v4/latest/USD',
+)
+LOCAL_CURRENCY = os.environ.get('LOCAL_CURRENCY', 'EUR').upper()
+DEFAULT_EXCHANGE_RATE = os.environ.get('DEFAULT_EXCHANGE_RATE', '0.85')
+try:
+    EXCHANGE_RATE_TIMEOUT = int(os.environ.get('EXCHANGE_RATE_TIMEOUT', '5'))
+except ValueError as error:
+    raise ImproperlyConfigured('EXCHANGE_RATE_TIMEOUT must be a positive integer.') from error
+if EXCHANGE_RATE_TIMEOUT <= 0:
+    raise ImproperlyConfigured('EXCHANGE_RATE_TIMEOUT must be a positive integer.')
+
 
 # Application definition
 

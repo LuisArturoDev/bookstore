@@ -1,12 +1,18 @@
 from decimal import Decimal
+from unittest.mock import Mock, patch
 
+import requests
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase, override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .models import Book
+from .services.exchange_rate_service import (
+    ExchangeRateService,
+    ExchangeRateUnavailable,
+)
 from .serializers import BookSerializer
 from .validators import normalize_isbn, validate_isbn
 
@@ -418,6 +424,92 @@ class BookFilterAPITests(APITestCase):
         self.assertIsNotNone(first_page.data['next'])
         self.assertEqual(len(second_page.data['results']), 1)
         self.assertIsNotNone(second_page.data['previous'])
+
+
+@override_settings(
+    EXCHANGE_RATE_API_URL='https://rates.example.test/latest/USD',
+    LOCAL_CURRENCY='EUR',
+    DEFAULT_EXCHANGE_RATE='0.85',
+    EXCHANGE_RATE_TIMEOUT=5,
+)
+class ExchangeRateServiceTests(SimpleTestCase):
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_returns_api_rate_as_decimal_and_uses_configured_currency(self, get):
+        response = Mock()
+        response.json.return_value = {'rates': {'EUR': 0.92}}
+        get.return_value = response
+
+        result = ExchangeRateService().get_rate()
+
+        self.assertEqual(result.rate, Decimal('0.92'))
+        self.assertEqual(result.currency, 'EUR')
+        self.assertFalse(result.used_fallback)
+        get.assert_called_once_with(
+            'https://rates.example.test/latest/USD',
+            timeout=5,
+        )
+        response.raise_for_status.assert_called_once_with()
+
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_timeout_uses_configured_fallback(self, get):
+        get.side_effect = requests.Timeout('request timed out')
+
+        result = ExchangeRateService().get_rate()
+
+        self.assertEqual(result.rate, Decimal('0.85'))
+        self.assertEqual(result.currency, 'EUR')
+        self.assertTrue(result.used_fallback)
+
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_http_error_uses_configured_fallback(self, get):
+        response = Mock()
+        response.raise_for_status.side_effect = requests.HTTPError('503')
+        get.return_value = response
+
+        result = ExchangeRateService().get_rate()
+
+        self.assertEqual(result.rate, Decimal('0.85'))
+        self.assertTrue(result.used_fallback)
+        response.json.assert_not_called()
+
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_invalid_json_uses_configured_fallback(self, get):
+        response = Mock()
+        response.json.side_effect = ValueError('invalid JSON')
+        get.return_value = response
+
+        result = ExchangeRateService().get_rate()
+
+        self.assertEqual(result.rate, Decimal('0.85'))
+        self.assertTrue(result.used_fallback)
+
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_missing_currency_or_invalid_rate_uses_fallback(self, get):
+        response = Mock()
+        response.json.return_value = {'rates': {'USD': 1, 'EUR': 0}}
+        get.return_value = response
+
+        result = ExchangeRateService().get_rate()
+
+        self.assertEqual(result.rate, Decimal('0.85'))
+        self.assertTrue(result.used_fallback)
+
+    @override_settings(DEFAULT_EXCHANGE_RATE='NaN')
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_invalid_fallback_raises_service_error(self, get):
+        get.side_effect = requests.Timeout('request timed out')
+
+        with self.assertRaises(ExchangeRateUnavailable):
+            ExchangeRateService().get_rate()
+
+
+class BookLowStockAPITests(APITestCase):
+    low_stock_url = '/books/low-stock'
+
+    def create_book(self, number, *, stock_quantity=5):
+        return Book.objects.create(
+            **make_book_data(number, stock_quantity=stock_quantity)
+        )
 
     def test_low_stock_uses_inclusive_threshold_and_includes_zero(self):
         zero_stock = self.create_book(1, stock_quantity=0)

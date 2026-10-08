@@ -30,7 +30,7 @@ El proyecto Django ya está inicializado dentro de `backend/`. El directorio `fr
 3. Antes de desplegar, configurar `SECRET_KEY` en el entorno del proceso y `DEBUG=False`. No subir secretos al repositorio.
 4. `LOCAL_CURRENCY=EUR` y `DEFAULT_EXCHANGE_RATE=0.85` se usarán en las fases de cálculo. La tasa es ilustrativa, no una cotización vigente, y debe corresponder a `LOCAL_CURRENCY`.
 
-La integración de tasas y la lectura de estas variables se implementarán en fases posteriores.
+La carga automática de archivos `.env` no está configurada; establece las variables necesarias en el entorno del proceso.
 
 ## Backend: instalación local
 
@@ -60,7 +60,7 @@ Django lee `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` desde variables de entorno de
 - [x] FASE 2 — Modelo `Book`.
 - [x] FASE 3 — CRUD.
 - [x] FASE 4 — Filtros.
-- [ ] FASE 5 — Integración de tasas de cambio.
+- [x] FASE 5 — Integración de tasas de cambio.
 - [ ] FASE 6 — Cálculo del precio.
 - [ ] FASE 7 — Tests.
 - [ ] FASE 8 — Frontend.
@@ -69,7 +69,7 @@ Django lee `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` desde variables de entorno de
 - [ ] FASE 11 — Documentación final.
 - [ ] FASE 12 — Docker (opcional).
 
-React y Vite se inicializarán en FASE 8. Los filtros, las tasas de cambio y el cálculo de precio pertenecen a fases posteriores.
+React y Vite se inicializarán en FASE 8. El cálculo de precio pertenece a la siguiente fase de negocio.
 
 ### Modelo `Book` (FASE 2)
 
@@ -126,6 +126,18 @@ Para ejecutar las pruebas focalizadas de CRUD y filtros:
 
 ```powershell
 python backend\manage.py test books.tests
+```
+
+### Servicio de tasa de cambio (FASE 5)
+
+`books.services.exchange_rate_service.ExchangeRateService` consulta `EXCHANGE_RATE_API_URL` con un timeout configurable, extrae la tasa de `LOCAL_CURRENCY` y la devuelve como `Decimal`. Si la solicitud falla o la respuesta no incluye una tasa positiva válida, usa `DEFAULT_EXCHANGE_RATE` y marca `used_fallback=True`. Si también falta una tasa de fallback válida, lanza `ExchangeRateUnavailable` para que la capa de negocio decida cómo responder. El servicio no modifica libros y todavía no está conectado al cálculo ni a ningún endpoint.
+
+Configurar `EXCHANGE_RATE_API_URL`, `LOCAL_CURRENCY`, `EXCHANGE_RATE_TIMEOUT` (entero positivo) y `DEFAULT_EXCHANGE_RATE` como variables de entorno del proceso. `.env.example` documenta los nombres, pero Django aún no carga automáticamente archivos `.env`. La tasa `0.85` es ilustrativa, no una cotización vigente.
+
+Las pruebas del servicio simulan respuestas, errores HTTP y timeouts; no requieren conexión con el proveedor:
+
+```powershell
+python backend\manage.py test books.tests.ExchangeRateServiceTests
 ```
 
 ## Contexto de la prueba
