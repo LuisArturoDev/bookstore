@@ -1,3 +1,4 @@
 Django==5.2.18
 djangorestframework==3.18.3
 requests==2.32.5
+gunicorn==23.0.0

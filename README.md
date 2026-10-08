@@ -8,7 +8,7 @@ Aplicación Full Stack para gestionar el inventario de una librería. El backend
 - Node.js `^20.19.0` o `>=22.12.0` y npm (requisitos de Vite 8).
 - Git para clonar el repositorio.
 - Postman, opcional, para usar la colección incluida.
-- Docker no es necesario para el desarrollo y no forma parte de las fases completadas.
+- Docker Engine y Docker Compose v2, opcionales para iniciar el stack en contenedores.
 
 ## Puesta en marcha local
 
@@ -40,9 +40,11 @@ npm run dev
 
 Abre la dirección indicada por Vite, normalmente `http://localhost:5173`. El proxy configurado en `frontend/vite.config.js` reenvía `/books` y `/health` a Django en `http://127.0.0.1:8000`; no se requiere configuración CORS para este modo local.
 
+Como alternativa, puedes ejecutar el stack con Docker Compose siguiendo la sección [Docker](#docker-fase-12-opcional).
+
 ## Configuración
 
-Las variables reconocidas están listadas en [.env.example](./.env.example). Django **no carga automáticamente archivos `.env`** en este proyecto: establece las variables en el entorno del proceso antes de iniciar Django. Desde PowerShell, por ejemplo:
+Las variables reconocidas por Django están listadas en [.env.example](./.env.example). Django **no carga automáticamente archivos `.env`** al ejecutarse directamente: establece las variables en el entorno del proceso antes de iniciar Django. Desde PowerShell, por ejemplo:
 
 ```powershell
 $env:DEBUG = "True"
@@ -66,6 +68,7 @@ Estas variables solo duran mientras viva esa sesión de PowerShell. La configura
 | `LOCAL_CURRENCY` | `EUR` | Código de moneda local de tres letras; se usa la tasa de esa moneda respecto a USD. |
 | `EXCHANGE_RATE_TIMEOUT` | `5` | Timeout de la petición externa, en segundos; debe ser entero positivo. |
 | `DEFAULT_EXCHANGE_RATE` | `0.85` | Tasa de respaldo positiva. El valor incluido es ilustrativo, no una cotización actual, y debe corresponder a `LOCAL_CURRENCY`. |
+| `APP_PORT` | `8080` | Puerto del host publicado por Docker Compose para el frontend; no lo utiliza Django. |
 
 ## Funcionalidad
 
@@ -156,7 +159,32 @@ npm run build
 
 ## Postman
 
-Importa [la colección Bookstore Inventory API](./postman/Bookstore%20Inventory%20API.postman_collection.json) en Postman. Inicia Django y deja `base_url` en `http://127.0.0.1:8000` o cámbiala según tu entorno. Ejecuta `Create Book` primero; las demás solicitudes usan el ID creado. Ejecuta `Delete Book` al terminar para limpiar el libro de prueba.
+Importa [la colección Bookstore Inventory API](./postman/Bookstore%20Inventory%20API.postman_collection.json) en Postman. Con el backend local, deja `base_url` en `http://127.0.0.1:8000`; con Docker, usa `http://127.0.0.1:8080` para pasar por el proxy Nginx. Ejecuta `Create Book` primero; las demás solicitudes usan el ID creado. Ejecuta `Delete Book` al terminar para limpiar el libro de prueba.
+
+## Docker (FASE 12, opcional)
+
+Requiere Docker Engine y Docker Compose v2. Desde la raíz del repositorio, crea un `.env` local a partir de la plantilla y **reemplaza el secreto de ejemplo**:
+
+```powershell
+Copy-Item .env.example .env
+notepad .env
+```
+
+Configura `SECRET_KEY` con un valor propio. Compose fuerza `DEBUG=False` en el backend, independientemente del valor local de esa variable. Si expones la aplicación con un hostname diferente de `localhost` o `127.0.0.1`, agrega ese hostname a `ALLOWED_HOSTS`. Después construye e inicia frontend y backend:
+
+```powershell
+docker compose up --build
+```
+
+La aplicación estará disponible en `http://localhost:8080` (o en el puerto indicado por `APP_PORT`); el endpoint de salud es `http://localhost:8080/health/`. Nginx sirve los archivos compilados de React y reenvía las rutas `/books` y `/health/` al backend dentro de la red privada de Compose. Solo se publica el puerto del frontend. El backend inicia con Gunicorn y aplica las migraciones antes de aceptar solicitudes.
+
+SQLite vive en el volumen nombrado `bookstore_data` y se conserva al detener el stack:
+
+```powershell
+docker compose down
+```
+
+No uses una opción que elimine volúmenes si quieres conservar los datos locales. Docker Compose carga `.env` para sustituir sus variables, pero Django no interpreta directamente el archivo. La tasa `DEFAULT_EXCHANGE_RATE` de la plantilla sigue siendo ilustrativa. Para ejecutar el modo local descrito arriba no se requiere Docker.
 
 ## Estructura del repositorio
 
@@ -164,6 +192,7 @@ Importa [la colección Bookstore Inventory API](./postman/Bookstore%20Inventory%
 backend/       Proyecto Django, API, modelo y tests
 frontend/      SPA React/Vite
 postman/       Colección Postman de la API
+compose.yaml   Orquestación local opcional de contenedores
 .env.example   Referencia de variables de configuración
 ```
 
@@ -181,6 +210,6 @@ postman/       Colección Postman de la API
 - [x] FASE 9 — Integración completa.
 - [x] FASE 10 — Colección Postman.
 - [x] FASE 11 — Documentación final.
-- [ ] FASE 12 — Docker (opcional, no implementado).
+- [x] FASE 12 — Docker (opcional).
 
 Las reglas y el contexto ampliado de la prueba están en [Nextep_Prueba_Tecnica_Contexto_Copilot.md](./Nextep_Prueba_Tecnica_Contexto_Copilot.md).

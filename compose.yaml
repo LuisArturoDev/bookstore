@@ -1,0 +1,51 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env before starting the containers}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      EXCHANGE_RATE_API_URL: ${EXCHANGE_RATE_API_URL:-https://api.exchangerate-api.com/v4/latest/USD}
+      LOCAL_CURRENCY: ${LOCAL_CURRENCY:-EUR}
+      EXCHANGE_RATE_TIMEOUT: ${EXCHANGE_RATE_TIMEOUT:-5}
+      DEFAULT_EXCHANGE_RATE: ${DEFAULT_EXCHANGE_RATE:-0.85}
+      DATABASE_PATH: /data/db.sqlite3
+    volumes:
+      - bookstore_data:/data
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/', timeout=2)
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-8080}:80"
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -q
+        - -O
+        - /dev/null
+        - http://127.0.0.1/health/
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  bookstore_data:
