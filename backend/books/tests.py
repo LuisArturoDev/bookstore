@@ -13,6 +13,7 @@ from .services.exchange_rate_service import (
     ExchangeRateService,
     ExchangeRateUnavailable,
 )
+from .services.price_calculation_service import PriceCalculationService
 from .serializers import BookSerializer
 from .validators import normalize_isbn, validate_isbn
 
@@ -570,3 +571,103 @@ class BookLowStockAPITests(APITestCase):
         self.assertEqual(len(first_page.data['results']), 10)
         self.assertIsNotNone(first_page.data['next'])
         self.assertEqual(len(second_page.data['results']), 1)
+
+
+@override_settings(
+    EXCHANGE_RATE_API_URL='https://rates.example.test/latest/USD',
+    LOCAL_CURRENCY='EUR',
+    DEFAULT_EXCHANGE_RATE='0.85',
+    EXCHANGE_RATE_TIMEOUT=5,
+)
+class PriceCalculationTests(APITestCase):
+    def setUp(self):
+        self.book = Book.objects.create(
+            **make_book_data(cost_usd='15.99', stock_quantity=5)
+        )
+        self.url = f'/books/{self.book.pk}/calculate-price'
+
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_calculates_persists_and_returns_detailed_price(self, get):
+        response_from_api = Mock()
+        response_from_api.json.return_value = {'rates': {'EUR': 0.85}}
+        get.return_value = response_from_api
+
+        response = self.client.post(self.url, {}, format='json')
+
+        self.book.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['book_id'], self.book.pk)
+        self.assertEqual(response.data['cost_usd'], 15.99)
+        self.assertEqual(response.data['exchange_rate'], 0.85)
+        self.assertEqual(response.data['cost_local'], 13.59)
+        self.assertEqual(response.data['margin_percentage'], 40)
+        self.assertEqual(response.data['selling_price_local'], 19.03)
+        self.assertEqual(response.data['currency'], 'EUR')
+        self.assertFalse(response.data['used_fallback'])
+        self.assertTrue(response.data['calculation_timestamp'].endswith('Z'))
+        self.assertEqual(self.book.selling_price_local, Decimal('19.03'))
+        get.assert_called_once()
+
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_uses_and_reports_fallback_when_exchange_api_times_out(self, get):
+        get.side_effect = requests.Timeout('request timed out')
+
+        response = self.client.post(self.url, {}, format='json')
+
+        self.book.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['used_fallback'])
+        self.assertEqual(response.data['exchange_rate'], 0.85)
+        self.assertEqual(self.book.selling_price_local, Decimal('19.03'))
+
+    @override_settings(DEFAULT_EXCHANGE_RATE='NaN')
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_returns_503_if_external_rate_and_fallback_are_unavailable(self, get):
+        get.side_effect = requests.Timeout('request timed out')
+
+        response = self.client.post(self.url, {}, format='json')
+
+        self.book.refresh_from_db()
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+        self.assertEqual(response.data['detail'], 'No valid exchange rate is currently available.')
+        self.assertIsNone(self.book.selling_price_local)
+
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_returns_404_for_missing_book_without_calling_external_api(self, get):
+        response = self.client.post('/books/99999/calculate-price', {}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        get.assert_not_called()
+
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_rounds_only_displayed_cost_and_final_price(self, get):
+        self.book.cost_usd = Decimal('1.01')
+        self.book.save(update_fields=('cost_usd',))
+
+        response_from_api = Mock()
+        response_from_api.json.return_value = {'rates': {'EUR': 1.005}}
+        get.return_value = response_from_api
+
+        response = self.client.post(self.url, {}, format='json')
+
+        self.book.refresh_from_db()
+        self.assertEqual(response.data['cost_local'], 1.02)
+        self.assertEqual(response.data['selling_price_local'], 1.42)
+        self.assertEqual(self.book.selling_price_local, Decimal('1.42'))
+
+    def test_service_receives_explicit_exchange_rate_service_dependency(self):
+        exchange_rate_service = Mock()
+        exchange_rate_service.get_rate.return_value = Mock(
+            rate=Decimal('0.85'),
+            currency='EUR',
+            used_fallback=False,
+        )
+        service = PriceCalculationService(exchange_rate_service)
+
+        calculation = service.calculate(self.book)
+
+        self.assertEqual(calculation.exchange_rate, Decimal('0.85'))
+        exchange_rate_service.get_rate.assert_called_once_with()

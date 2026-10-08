@@ -61,7 +61,7 @@ Django lee `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` desde variables de entorno de
 - [x] FASE 3 — CRUD.
 - [x] FASE 4 — Filtros.
 - [x] FASE 5 — Integración de tasas de cambio.
-- [ ] FASE 6 — Cálculo del precio.
+- [x] FASE 6 — Cálculo del precio.
 - [ ] FASE 7 — Tests.
 - [ ] FASE 8 — Frontend.
 - [ ] FASE 9 — Integración completa.
@@ -138,6 +138,18 @@ Las pruebas del servicio simulan respuestas, errores HTTP y timeouts; no requier
 
 ```powershell
 python backend\manage.py test books.tests.ExchangeRateServiceTests
+```
+
+### Cálculo del precio (FASE 6)
+
+`PriceCalculationService` combina el costo en USD con la tasa recibida de `ExchangeRateService`, aplica un margen del 40% y persiste `selling_price_local`. Conserva `Decimal` y precisión intermedia durante la operación; redondea el costo local mostrado y el precio final con `ROUND_HALF_UP` a dos decimales.
+
+El endpoint `POST /books/{id}/calculate-price` devuelve `book_id`, costo USD, tasa, costo local, margen, precio sugerido, moneda, `used_fallback` y timestamp UTC. Si el libro no existe, responde `404`. Si ni la API externa ni el fallback ofrecen una tasa válida, responde `503` y no actualiza el precio. La vista delega el cálculo al servicio; el servicio recibe la dependencia de tasa y es comprobable sin llamadas HTTP reales.
+
+Para ejecutar las pruebas del cálculo:
+
+```powershell
+python backend\manage.py test books.tests.PriceCalculationTests
 ```
 
 ## Contexto de la prueba

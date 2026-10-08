@@ -1,16 +1,21 @@
 import re
 
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
 )
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Book
 from .pagination import BookPagination
+from .services.exchange_rate_service import ExchangeRateUnavailable
+from .services.price_calculation_service import PriceCalculationService
 from .serializers import BookSerializer
 
 
@@ -60,3 +65,29 @@ class BookLowStockView(ListAPIView):
         threshold = int(raw_threshold)
 
         return Book.objects.filter(stock_quantity__lte=threshold).order_by('id')
+
+
+class BookCalculatePriceView(APIView):
+    def post(self, request, pk):
+        book = get_object_or_404(Book, pk=pk)
+        try:
+            calculation = PriceCalculationService().calculate(book)
+        except ExchangeRateUnavailable:
+            return Response(
+                {'detail': 'No valid exchange rate is currently available.'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        return Response(
+            {
+                'book_id': calculation.book_id,
+                'cost_usd': float(calculation.cost_usd),
+                'exchange_rate': float(calculation.exchange_rate),
+                'cost_local': float(calculation.cost_local),
+                'margin_percentage': int(calculation.margin_percentage),
+                'selling_price_local': float(calculation.selling_price_local),
+                'currency': calculation.currency,
+                'used_fallback': calculation.used_fallback,
+                'calculation_timestamp': calculation.calculation_timestamp,
+            }
+        )
