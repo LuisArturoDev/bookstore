@@ -6,7 +6,7 @@ Aplicación Full Stack para administrar el inventario de una librería. Este rep
 
 - **Backend:** Python, Django y Django REST Framework.
 - **Frontend:** React con Vite y JavaScript.
-- **Base de datos:** SQLite para el desarrollo inicial; la configuración se concretará en la fase del backend.
+- **Base de datos:** SQLite para el desarrollo local (configurada en FASE 1).
 - **Integración posterior:** API de tasas de cambio para calcular el precio de venta sugerido.
 
 Se eligen React/Vite y JavaScript por ser la opción preferida en el contexto del proyecto y mantener simple el frontend inicial. SQLite permite comenzar el desarrollo local sin levantar un servicio adicional. Estas decisiones no impiden cambiar de base de datos si los requisitos de despliegue lo justifican.
@@ -15,27 +15,47 @@ Se eligen React/Vite y JavaScript por ser la opción preferida en el contexto de
 
 ```text
 .
-├── backend/     # Proyecto Django y API
+├── backend/     # Proyecto Django y API (FASE 1)
 ├── frontend/    # Aplicación React/Vite
 ├── .env.example # Plantilla de configuración local
 └── README.md
 ```
 
-Los directorios `backend/` y `frontend/` se crearán en sus fases respectivas; todavía no contienen aplicaciones en esta fase de preparación.
+El proyecto Django ya está inicializado dentro de `backend/`. El directorio `frontend/` se creará en FASE 8.
 
 ## Configuración local
 
-1. Copiar `.env.example` a `.env`.
-2. Reemplazar `SECRET_KEY` por un secreto local. No subir `.env` al repositorio.
-3. Mantener `LOCAL_CURRENCY=EUR` como moneda inicial del ejemplo, salvo que se acuerde otra.
-4. `DEFAULT_EXCHANGE_RATE=0.85` es un valor ilustrativo para el fallback, no una cotización vigente. Debe corresponder a `LOCAL_CURRENCY`.
+1. `.env.example` documenta las variables previstas; Django todavía no carga archivos `.env` automáticamente.
+2. Para esta fase, el backend usa valores predeterminados de desarrollo. No utilizar esos valores en producción.
+3. Antes de desplegar, configurar `SECRET_KEY` en el entorno del proceso y `DEBUG=False`. No subir secretos al repositorio.
+4. `LOCAL_CURRENCY=EUR` y `DEFAULT_EXCHANGE_RATE=0.85` se usarán en las fases de cálculo. La tasa es ilustrativa, no una cotización vigente, y debe corresponder a `LOCAL_CURRENCY`.
 
 La integración de tasas y la lectura de estas variables se implementarán en fases posteriores.
+
+## Backend: instalación local
+
+Requisitos: Python 3.10 o posterior compatible con la versión de Django instalada.
+
+Desde la raíz del repositorio, en PowerShell:
+
+```powershell
+py -3 -m venv backend\.venv
+backend\.venv\Scripts\Activate.ps1
+python -m pip install -r backend\requirements.txt
+python backend\manage.py migrate
+python backend\manage.py runserver
+```
+
+Comprobar que Django responde visitando `http://127.0.0.1:8000/health/`; debe devolver `{"status":"ok"}`.
+
+La base local SQLite se crea al ejecutar las migraciones. El endpoint `/health/` solo verifica que la aplicación está activa; no es un endpoint de inventario.
+
+Django lee `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` desde variables de entorno del proceso. Django no carga archivos `.env` por sí solo; en esta fase no se añadió una dependencia para hacerlo. El valor predeterminado de `SECRET_KEY` es únicamente para desarrollo local y no es seguro para producción. Al desactivar `DEBUG`, el backend exige que `SECRET_KEY` esté configurada.
 
 ## Estado del desarrollo
 
 - [x] FASE 0 — Preparación del repositorio y configuración inicial.
-- [ ] FASE 1 — Django básico.
+- [x] FASE 1 — Django básico.
 - [ ] FASE 2 — Modelo `Book`.
 - [ ] FASE 3 — CRUD.
 - [ ] FASE 4 — Filtros.
@@ -48,7 +68,7 @@ La integración de tasas y la lectura de estas variables se implementarán en fa
 - [ ] FASE 11 — Documentación final.
 - [ ] FASE 12 — Docker (opcional).
 
-En esta fase no se han inicializado Django, DRF, React ni Vite. Las instrucciones para ejecutar backend y frontend se agregarán cuando esas aplicaciones existan.
+React y Vite se inicializarán en FASE 8. El CRUD, los modelos de negocio, las tasas de cambio y el cálculo de precio pertenecen a fases posteriores.
 
 ## Contexto de la prueba
 
