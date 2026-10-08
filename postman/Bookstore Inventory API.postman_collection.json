@@ -201,7 +201,7 @@
           "response": []
         },
         {
-          "name": "Search by Category",
+          "name": "Search by Title/Category",
           "event": [
             {
               "listen": "test",
@@ -210,9 +210,11 @@
                 "exec": [
                   "pm.test('Returns 200 OK', () => pm.response.to.have.status(200));",
                   "const page = pm.response.json();",
-                  "pm.test('Returns paginated category matches', () => {",
+                  "const title = pm.collectionVariables.get('title').trim().toLowerCase();",
+                  "const category = pm.collectionVariables.get('category').trim().toLowerCase();",
+                  "pm.test('Returns paginated title and category matches', () => {",
                   "  pm.expect(page.results).to.be.an('array');",
-                  "  pm.expect(page.results.every((book) => book.category.toLowerCase() === pm.collectionVariables.get('category').toLowerCase())).to.eql(true);",
+                  "  pm.expect(page.results.every((book) => (!category || book.category.toLowerCase() === category) && (!title || book.title.toLowerCase().includes(title)))).to.eql(true);",
                   "});"
                 ]
               }
@@ -222,7 +224,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/books/search?category={{category}}&page={{page}}&page_size={{page_size}}",
+              "raw": "{{base_url}}/books/search?title={{title}}&category={{category}}&page={{page}}&page_size={{page_size}}",
               "host": [
                 "{{base_url}}"
               ],
@@ -231,6 +233,10 @@
                 "search"
               ],
               "query": [
+                {
+                  "key": "title",
+                  "value": "{{title}}"
+                },
                 {
                   "key": "category",
                   "value": "{{category}}"
@@ -245,7 +251,7 @@
                 }
               ]
             },
-            "description": "La categoría se compara sin distinguir mayúsculas/minúsculas. Una categoría vacía devuelve 400."
+            "description": "Permite filtrar por title parcial (case-insensitive), category exacta (case-insensitive) o ambos. La variable title empieza vacía; asigna texto para buscar por nombre. Devuelve 400 si ambos filtros están vacíos."
           },
           "response": []
         },
@@ -385,7 +391,37 @@
           "response": []
         }
       ],
-      "description": "Flujo de prueba recomendado: Create Book → List Books → Get Book → Update Book → Search by Category → Low Stock → Calculate Price → Delete Book."
+      "description": "Flujo de prueba recomendado: Create Book → List Books → Get Book → Update Book → Search by Title/Category → Low Stock → Calculate Price → Delete Book."
+    },
+    {
+      "name": "Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('API reports healthy status', () => pm.expect(pm.response.json().status).to.eql('ok'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
+        "description": "Comprueba que la API responde. Espera 200 y { \"status\": \"ok\" }."
+      },
+      "response": []
     }
   ],
   "variable": [
@@ -407,6 +443,11 @@
     {
       "key": "category",
       "value": "Fiction",
+      "type": "string"
+    },
+    {
+      "key": "title",
+      "value": "",
       "type": "string"
     },
     {

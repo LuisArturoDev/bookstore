@@ -84,21 +84,49 @@ Los importes se manejan en el backend como decimales y el precio calculado se re
 
 ## API
 
-La API usa las rutas exactas siguientes: no tienen prefijo `/api` ni barra final, salvo `/health/`.
+La API usa las rutas exactas siguientes: no tienen prefijo `/api` ni barra final, salvo el endpoint de salud, disponible como `/health` y `/health/`.
 
 | Método | Ruta | Descripción | Respuestas principales |
 |---|---|---|---|
-| `GET` | `/health/` | Comprueba que Django responde. | `200` |
+| `GET` | `/health` o `/health/` | Comprueba que Django responde; es para monitoreo, no una página de navegación. | `200` |
 | `POST` | `/books` | Crea un libro. | `201`, `400` |
 | `GET` | `/books` | Lista libros paginados. | `200` |
 | `GET` | `/books/{id}` | Obtiene un libro. | `200`, `404` |
 | `PUT` | `/books/{id}` | Reemplaza todos los campos editables. | `200`, `400`, `404` |
 | `DELETE` | `/books/{id}` | Elimina un libro. | `204`, `404` |
-| `GET` | `/books/search?category=Fiction` | Filtra por categoría, sin distinguir mayúsculas/minúsculas. | `200`, `400` |
+| `GET` | `/books/search?title=great&category=Fiction` | Filtra por texto parcial del título, categoría o ambos. | `200`, `400` |
 | `GET` | `/books/low-stock?threshold=10` | Devuelve libros con stock menor o igual al umbral. | `200`, `400` |
 | `POST` | `/books/{id}/calculate-price` | Calcula y guarda el precio sugerido. | `200`, `404`, `503` |
 
-Los endpoints de listado y filtros aceptan `page` y `page_size`. El tamaño predeterminado es 10 y el máximo, 100. Devuelven `count`, `next`, `previous` y `results`. Los errores de validación usan `400`; los filtros sin coincidencias devuelven `200` con resultados vacíos. No está habilitado `PATCH`.
+Los endpoints de listado y filtros aceptan `page` y `page_size`. El tamaño predeterminado es 10 y el máximo, 100. Devuelven `count`, `next`, `previous` y `results`, ordenados por ID descendente para mostrar primero el libro más reciente. La búsqueda usa el parámetro opcional `title` para coincidencia parcial, sin distinguir mayúsculas/minúsculas; `category` filtra por categoría, también sin distinguir mayúsculas/minúsculas. Se puede enviar uno o ambos, y ambos se combinan con AND. Si no se proporciona ninguno, responde `400`. Los errores de validación usan `400`; los filtros válidos sin coincidencias devuelven `200` con resultados vacíos. No está habilitado `PATCH`.
+
+Ejemplos de búsqueda:
+
+```text
+GET /books/search?title=harry
+GET /books/search?category=Fantasy
+GET /books/search?title=harry&category=Fantasy
+```
+
+La interfaz permite buscar por nombre del libro (título), categoría o ambos criterios; el filtro de existencias bajas se mantiene independiente.
+
+### Cargar libros de demostración
+
+El catálogo local `backend/books/data/demo_books.json` contiene 200 títulos reales con autor e ISBN-13 obtenidos de [Open Library](https://openlibrary.org/). No incluye portadas; los libros sin imagen muestran las iniciales del título. Para agregarlos al inventario de desarrollo:
+
+```powershell
+python backend\manage.py seed_demo_books
+```
+
+En Docker Compose:
+
+```powershell
+docker compose exec backend python manage.py seed_demo_books
+```
+
+El comando es idempotente: omite los ISBN que ya existan y no modifica ni elimina libros guardados. Se puede volver a ejecutar sin duplicar el catálogo.
+
+El inventario se puede visualizar como tabla o como tarjetas desde el selector junto a los resultados. Ambas vistas conservan acciones, filtros y paginación, y muestran skeletons mientras se cargan los libros.
 
 ### Crear un libro
 
@@ -116,7 +144,9 @@ Petición `POST /books` con `Content-Type: application/json`:
 }
 ```
 
-`cost_usd` debe ser mayor que cero y tener como máximo dos decimales; `stock_quantity` debe ser un entero no negativo; `supplier_country` debe ser un código de dos letras en mayúsculas. El ISBN se normaliza y debe ser válido y único. El precio sugerido y los timestamps son de solo lectura.
+El título admite hasta 150 caracteres, el autor hasta 100 y la categoría hasta 50; estos límites se aplican tanto en el formulario como en la API para evitar registros excesivamente largos. `cost_usd` debe ser mayor que cero y tener como máximo dos decimales; `stock_quantity` debe ser un entero no negativo; `supplier_country` debe ser un código de dos letras en mayúsculas. El ISBN se normaliza y debe ser válido y único. La portada `image` es opcional; admite JPG, PNG o WebP hasta 5 MB. Para cargar archivos, envía la creación o actualización como `multipart/form-data`; sin imagen se puede seguir usando JSON. Al actualizar, `remove_image=true` quita una portada existente si no se envía una nueva imagen. Los archivos reemplazados, quitados o asociados a un libro eliminado se limpian después de confirmar la transacción. El precio sugerido y los timestamps son de solo lectura.
+
+El inventario muestra tarjetas por defecto y permite alternar a la tabla; la vista elegida se guarda en `localStorage` para conservar la preferencia en futuras visitas. También permite alternar entre tema claro y oscuro, guardando la elección localmente. La interfaz usa iconos SVG consistentes. Ambas vistas incluyen portada si existe; si no, presentan las iniciales del título. El título se muestra completo y al seleccionar una tarjeta o fila se abre el detalle del libro.
 
 ### Calcular el precio sugerido
 
@@ -159,7 +189,7 @@ npm run build
 
 ## Postman
 
-Importa [la colección Bookstore Inventory API](./postman/Bookstore%20Inventory%20API.postman_collection.json) en Postman. Con el backend local, deja `base_url` en `http://127.0.0.1:8000`; con Docker, usa `http://127.0.0.1:8080` para pasar por el proxy Nginx. Ejecuta `Create Book` primero; las demás solicitudes usan el ID creado. Ejecuta `Delete Book` al terminar para limpiar el libro de prueba.
+Importa [la colección Bookstore Inventory API](./postman/Bookstore%20Inventory%20API.postman_collection.json), ubicada en `postman/Bookstore Inventory API.postman_collection.json`, en Postman. Incluye todas las rutas: Health Check; crear, listar, consultar, actualizar y eliminar libros; buscar por título/categoría; filtrar por stock bajo; y calcular el precio. Con Django local, configura `base_url` como `http://127.0.0.1:8000`; con Docker, usa `http://127.0.0.1:8080` para pasar por el proxy Nginx. Ejecuta `Create Book` primero; las demás solicitudes de libro usan el ID creado. Ejecuta `Delete Book` al terminar para limpiar el libro de prueba.
 
 ## Docker (FASE 12, opcional)
 
@@ -176,9 +206,9 @@ Configura `SECRET_KEY` con un valor propio. Compose fuerza `DEBUG=False` en el b
 docker compose up --build
 ```
 
-La aplicación estará disponible en `http://localhost:8080` (o en el puerto indicado por `APP_PORT`); el endpoint de salud es `http://localhost:8080/health/`. Nginx sirve los archivos compilados de React y reenvía las rutas `/books` y `/health/` al backend dentro de la red privada de Compose. Solo se publica el puerto del frontend. El backend inicia con Gunicorn y aplica las migraciones antes de aceptar solicitudes.
+La aplicación estará disponible en `http://localhost:8080` (o en el puerto indicado por `APP_PORT`). El endpoint de salud, pensado para comprobar disponibilidad y no para navegar la interfaz, está disponible en `http://localhost:8080/health` y `http://localhost:8080/health/`; responde JSON con el estado del backend. Nginx sirve los archivos compilados de React, entrega los medios desde el volumen compartido y reenvía las rutas `/books` y `/health` al backend dentro de la red privada de Compose. Solo se publica el puerto del frontend. El backend inicia con Gunicorn y aplica las migraciones antes de aceptar solicitudes.
 
-SQLite vive en el volumen nombrado `bookstore_data` y se conserva al detener el stack:
+SQLite y las imágenes subidas viven en los volúmenes nombrados `bookstore_data` y `bookstore_media`; se conservan al detener el stack:
 
 ```powershell
 docker compose down
@@ -211,5 +241,13 @@ compose.yaml   Orquestación local opcional de contenedores
 - [x] FASE 10 — Colección Postman.
 - [x] FASE 11 — Documentación final.
 - [x] FASE 12 — Docker (opcional).
+
+## Nota sobre el desarrollo
+
+Mi experiencia profesional está principalmente orientada al desarrollo Full Stack con PHP y Laravel. Para esta prueba, Python y Django representaron un stack tecnológico nuevo para mí.
+
+Durante el desarrollo utilicé herramientas de asistencia basadas en IA como apoyo para investigar y acelerar la implementación. La definición de la solución, las decisiones técnicas, la estructura de la aplicación y la validación de los resultados fueron dirigidas y revisadas por mí.
+
+Esta prueba también representa mi capacidad de adaptarme rápidamente a un stack nuevo y trasladar conocimientos de desarrollo previamente adquiridos a una tecnología diferente.
 
 Las reglas y el contexto ampliado de la prueba están en [Nextep_Prueba_Tecnica_Contexto_Copilot.md](./Nextep_Prueba_Tecnica_Contexto_Copilot.md).

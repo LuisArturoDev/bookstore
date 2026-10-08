@@ -1,8 +1,9 @@
 async function request(path, options = {}) {
+  const isFormData = options.body instanceof FormData
   const response = await fetch(path, {
     ...options,
     headers: {
-      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.body && !isFormData ? { 'Content-Type': 'application/json' } : {}),
       ...options.headers,
     },
   })
@@ -43,8 +44,10 @@ export function getBooks(page = 1) {
   return request(`/books?page=${page}`)
 }
 
-export function searchBooksByCategory(category, page = 1) {
-  const params = new URLSearchParams({ category, page: String(page) })
+export function searchBooks(title, category, page = 1) {
+  const params = new URLSearchParams({ page: String(page) })
+  if (title) params.set('title', title)
+  if (category) params.set('category', category)
   return request(`/books/search?${params}`)
 }
 
@@ -53,12 +56,16 @@ export function getLowStockBooks(threshold = 10, page = 1) {
   return request(`/books/low-stock?${params}`)
 }
 
+function serializeBookData(book) {
+  return book instanceof FormData ? book : JSON.stringify(book)
+}
+
 export function createBook(book) {
-  return request('/books', { method: 'POST', body: JSON.stringify(book) })
+  return request('/books', { method: 'POST', body: serializeBookData(book) })
 }
 
 export function updateBook(id, book) {
-  return request(`/books/${id}`, { method: 'PUT', body: JSON.stringify(book) })
+  return request(`/books/${id}`, { method: 'PUT', body: serializeBookData(book) })
 }
 
 export function deleteBook(id) {

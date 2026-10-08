@@ -1,3 +1,7 @@
+import BookActions from './BookActions.jsx'
+import BookCover from './BookCover.jsx'
+import Icon from './Icon.jsx'
+
 function formatMoney(value, currency = 'EUR') {
   if (value === null || value === undefined || value === '') return '—'
   return new Intl.NumberFormat('es-ES', {
@@ -7,9 +11,38 @@ function formatMoney(value, currency = 'EUR') {
   }).format(Number(value))
 }
 
-function BookTable({ books, loading, error, pendingAction, onEdit, onDelete, onCalculate, onAddBook }) {
+function BookTable({ books, loading, error, pendingAction, onEdit, onDelete, onCalculate, onViewDetails, onAddBook }) {
+  const openDetailsOnKeyDown = (event, book) => {
+    if (event.target !== event.currentTarget) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onViewDetails(book)
+    }
+  }
+
   if (loading && books.length === 0) {
-    return <div className="table-state"><span className="spinner" /><strong>Cargando inventario…</strong><span>Consultando tus libros.</span></div>
+    return (
+      <div className="table-wrap" role="status" aria-label="Cargando libros">
+        <table className="book-table-skeleton">
+          <thead>
+            <tr><th>LIBRO</th><th>ISBN</th><th>CATEGORÍA</th><th>COSTO</th><th>PRECIO SUGERIDO</th><th>STOCK</th><th>ACCIONES</th></tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: 6 }, (_, index) => (
+              <tr key={index} aria-hidden="true">
+                <td><span className="skeleton skeleton-table-book" /></td>
+                <td><span className="skeleton skeleton-line skeleton-table-isbn" /></td>
+                <td><span className="skeleton skeleton-chip" /></td>
+                <td><span className="skeleton skeleton-line skeleton-table-price" /></td>
+                <td><span className="skeleton skeleton-line skeleton-table-price" /></td>
+                <td><span className="skeleton skeleton-chip" /></td>
+                <td><span className="skeleton skeleton-actions" /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
   }
 
   if (error && books.length === 0) return null
@@ -17,7 +50,7 @@ function BookTable({ books, loading, error, pendingAction, onEdit, onDelete, onC
   if (!loading && books.length === 0) {
     return (
       <div className="table-state empty-state">
-        <span className="empty-icon">▤</span>
+        <span className="empty-icon"><Icon name="books" size={21} /></span>
         <strong>No hay libros en esta vista</strong>
         <span>Prueba con otro filtro o agrega un título al inventario.</span>
         <button className="button button-outline" type="button" onClick={onAddBook}>Agregar primer libro</button>
@@ -36,17 +69,24 @@ function BookTable({ books, loading, error, pendingAction, onEdit, onDelete, onC
             <th>COSTO</th>
             <th>PRECIO SUGERIDO</th>
             <th>STOCK</th>
-            <th><span className="sr-only">Acciones</span></th>
+            <th>ACCIONES</th>
           </tr>
         </thead>
         <tbody>
-          {books.map((book) => {
-            const isBusy = pendingAction === `delete-${book.id}` || pendingAction === `price-${book.id}`
-            return (
-              <tr key={book.id}>
+          {books.map((book) => (
+              <tr
+                key={book.id}
+                className="book-row-clickable"
+                tabIndex={0}
+                aria-label={`Ver detalles de ${book.title}`}
+                onClick={(event) => {
+                  if (!event.target.closest('button, a, input, select, textarea')) onViewDetails(book)
+                }}
+                onKeyDown={(event) => openDetailsOnKeyDown(event, book)}
+              >
                 <td>
                   <div className="book-cell">
-                    <span className={`book-cover cover-${book.id % 5}`} aria-hidden="true"><span>{book.title.charAt(0).toUpperCase()}</span></span>
+                    <BookCover book={book} />
                     <span className="book-name"><strong>{book.title}</strong><small>{book.author}</small></span>
                   </div>
                 </td>
@@ -56,19 +96,16 @@ function BookTable({ books, loading, error, pendingAction, onEdit, onDelete, onC
                 <td className="money-cell selling-price">{formatMoney(book.selling_price_local)}</td>
                 <td><span className={`stock-pill ${book.stock_quantity === 0 ? 'stock-empty' : book.stock_quantity <= 10 ? 'stock-low' : 'stock-good'}`}><i />{book.stock_quantity} {book.stock_quantity === 1 ? 'unidad' : 'unidades'}</span></td>
                 <td>
-                  <div className="row-actions">
-                    <button className="icon-button action-calculate" type="button" title="Calcular precio de venta" aria-label={`Calcular precio para ${book.title}`} disabled={isBusy} onClick={() => onCalculate(book)}>
-                      {pendingAction === `price-${book.id}` ? <span className="spinner spinner-small" /> : '↗'}
-                    </button>
-                    <button className="icon-button" type="button" title="Editar libro" aria-label={`Editar ${book.title}`} disabled={isBusy} onClick={() => onEdit(book)}>✎</button>
-                    <button className="icon-button action-delete" type="button" title="Eliminar libro" aria-label={`Eliminar ${book.title}`} disabled={isBusy} onClick={() => onDelete(book)}>
-                      {pendingAction === `delete-${book.id}` ? <span className="spinner spinner-small" /> : '⌫'}
-                    </button>
-                  </div>
+                  <BookActions
+                    book={book}
+                    pendingAction={pendingAction}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onCalculate={onCalculate}
+                  />
                 </td>
               </tr>
-            )
-          })}
+          ))}
         </tbody>
       </table>
     </div>

@@ -300,11 +300,13 @@ Aunque están marcados como opcionales en la sección de CRUD, el frontend requi
 
 Por lo tanto, implementarlos para que el frontend pueda cumplir completamente sus requisitos.
 
-## Buscar/filtrar por categoría
+## Buscar por nombre y filtrar por categoría
 
 ```http
-GET /books/search?category={category}
+GET /books/search?title={partial_title}&category={category}
 ```
+
+`title` y `category` son opcionales individualmente, pero debe proporcionarse al menos uno. `title` busca coincidencias parciales del título sin distinguir mayúsculas/minúsculas; `category` compara la categoría completa con la misma insensibilidad. Si ambos se proporcionan, se combinan. Recortar espacios exteriores de ambos parámetros.
 
 ## Libros con stock bajo
 
@@ -901,14 +903,16 @@ feat: implement books CRUD API
 Implementar:
 
 ```text
-GET /books/search?category={category}
+GET /books/search?title={partial_title}&category={category}
 GET /books/low-stock?threshold=10
 ```
 
 Verificar:
 
-- categoría existente
-- categoría sin resultados
+- búsqueda por título
+- filtro por categoría
+- combinación de título y categoría
+- filtros vacíos y sin resultados
 - threshold válido
 - stock = 0
 - stock menor al threshold

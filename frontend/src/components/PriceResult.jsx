@@ -1,3 +1,5 @@
+import Icon from './Icon.jsx'
+
 function formatMoney(value, currency) {
   return new Intl.NumberFormat('es-ES', {
     style: 'currency',
@@ -11,7 +13,7 @@ function PriceResult({ result, onClose }) {
     <div className="price-result">
       <div className="modal-heading">
         <div><span className="eyebrow"><span className="eyebrow-line" /> CÁLCULO COMPLETADO</span><h2 id="price-result-title">Precio sugerido</h2><p>El precio se guardó en el inventario.</p></div>
-        <button className="icon-button modal-close" type="button" aria-label="Cerrar resultado" onClick={onClose}>×</button>
+        <button className="icon-button modal-close" type="button" aria-label="Cerrar resultado" onClick={onClose}><Icon name="close" /></button>
       </div>
       <div className="price-highlight">
         <span>PRECIO DE VENTA</span>

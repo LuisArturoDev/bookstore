@@ -27,9 +27,14 @@ La API debe estar disponible en `http://127.0.0.1:8000`. La configuración del p
 ## Funcionalidades
 
 - Dashboard paginado.
-- Filtro por categoría y vista de stock bajo.
+- Búsqueda parcial por nombre/título, filtro por categoría o combinación de ambos, y vista de stock bajo.
+- Alternancia entre tarjetas (vista predeterminada) y tabla para visualizar los libros; la elección se recuerda en `localStorage`. Incluye skeletons durante la carga de resultados.
+- Cambio entre tema claro y oscuro, con preferencia guardada en `localStorage`, e iconografía SVG unificada.
+- Títulos completos; al seleccionar una tarjeta o fila se abre un modal con los datos del libro.
+- Portada opcional en JPG, PNG o WebP (máximo 5 MB), con iniciales del título como fallback; se puede reemplazar o quitar durante la edición.
 - Alta, edición con `PUT` y eliminación confirmada.
 - Cálculo del precio sugerido, incluyendo tasa usada y si se aplicó fallback.
+- Vista personalizada para rutas inexistentes; Nginx responde con estado HTTP `404` en producción.
 - Estados de carga, vacíos, errores y notificaciones.
 
 Validar calidad y compilación:

@@ -1,10 +1,16 @@
+from io import BytesIO, StringIO
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import requests
 from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
 from django.db import IntegrityError, transaction
 from django.test import SimpleTestCase, TestCase, override_settings
+from PIL import Image
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -15,7 +21,43 @@ from .services.exchange_rate_service import (
 )
 from .services.price_calculation_service import PriceCalculationService
 from .serializers import BookSerializer
-from .validators import normalize_isbn, validate_isbn
+from .validators import (
+    MAX_BOOK_IMAGE_SIZE,
+    normalize_isbn,
+    validate_book_image,
+    validate_isbn,
+)
+
+
+class HealthCheckAPITests(APITestCase):
+    def test_health_check_returns_json_for_browser_requests(self):
+        browser_accept = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        response = self.client.get('/health/', HTTP_ACCEPT=browser_accept)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        self.assertEqual(response.data, {'status': 'ok'})
+
+
+class BookImageValidationTests(SimpleTestCase):
+    def test_rejects_cover_images_larger_than_five_megabytes(self):
+        image = SimpleUploadedFile(
+            'cover.png',
+            b'x' * (MAX_BOOK_IMAGE_SIZE + 1),
+            content_type='image/png',
+        )
+
+        with self.assertRaisesMessage(ValidationError, 'must not exceed 5 MB'):
+            validate_book_image(image)
+
+    def test_accepts_cover_images_at_the_five_megabyte_limit(self):
+        image = SimpleUploadedFile(
+            'cover.png',
+            b'x' * MAX_BOOK_IMAGE_SIZE,
+            content_type='image/png',
+        )
+
+        validate_book_image(image)
 
 
 class ISBNValidationTests(TestCase):
@@ -30,8 +72,29 @@ class ISBNValidationTests(TestCase):
         validate_isbn('0-8044-2957-X')
 
     def test_rejects_invalid_check_digit(self):
-        with self.assertRaisesMessage(ValidationError, 'check digit'):
+        with self.assertRaisesMessage(
+            ValidationError,
+            'El dígito de control del ISBN-13 no es válido.',
+        ):
             validate_isbn('978-0-306-40615-8')
+
+    def test_rejects_isbn_13_without_isbn_prefix(self):
+        with self.assertRaisesMessage(
+            ValidationError,
+            'Un ISBN-13 debe comenzar con 978 o 979.',
+        ):
+            validate_isbn('232-1-123-65234-0')
+
+    def test_reports_both_prefix_and_check_digit_problems_in_example(self):
+        with self.assertRaisesMessage(
+            ValidationError,
+            'Un ISBN-13 debe comenzar con 978 o 979. '
+            'El dígito de control del ISBN-13 no es válido.',
+        ):
+            validate_isbn('232-1-123-65234-6')
+
+    def test_accepts_valid_isbn_13_with_979_prefix(self):
+        validate_isbn('979-10-90636-07-1')
 
 
 class BookModelTests(TestCase):
@@ -151,6 +214,32 @@ class BookSerializerTests(TestCase):
 
         self.assertFalse(serializer.is_valid())
         self.assertIn('isbn', serializer.errors)
+        self.assertEqual(
+            str(serializer.errors['isbn'][0]),
+            'El dígito de control del ISBN-13 no es válido.',
+        )
+
+    def test_reports_prefix_and_check_digit_errors_for_invalid_isbn_13(self):
+        serializer = BookSerializer(
+            data=make_book_data(isbn='232-1-123-65234-6')
+        )
+
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            str(serializer.errors['isbn'][0]),
+            'Un ISBN-13 debe comenzar con 978 o 979. '
+            'El dígito de control del ISBN-13 no es válido.',
+        )
+
+    def test_rejects_title_author_and_category_above_form_limits(self):
+        for field, limit in (('title', 150), ('author', 100), ('category', 50)):
+            with self.subTest(field=field):
+                serializer = BookSerializer(
+                    data=make_book_data(**{field: 'x' * (limit + 1)})
+                )
+
+                self.assertFalse(serializer.is_valid())
+                self.assertIn(field, serializer.errors)
 
     def test_rejects_duplicate_isbn_after_normalization(self):
         Book.objects.create(
@@ -214,6 +303,12 @@ def make_book_data(number=1, **overrides):
     return data
 
 
+def make_test_image_upload(name='cover.png'):
+    image_bytes = BytesIO()
+    Image.new('RGB', (4, 6), color='forestgreen').save(image_bytes, format='PNG')
+    return SimpleUploadedFile(name, image_bytes.getvalue(), content_type='image/png')
+
+
 class BookCRUDAPITests(APITestCase):
     list_url = '/books'
 
@@ -223,6 +318,7 @@ class BookCRUDAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['isbn'], make_isbn13(1))
         self.assertIsNone(response.data['selling_price_local'])
+        self.assertIsNone(response.data['image'])
         self.assertIn('id', response.data)
         self.assertIn('created_at', response.data)
         self.assertIn('updated_at', response.data)
@@ -241,6 +337,79 @@ class BookCRUDAPITests(APITestCase):
                 response = self.client.post(self.list_url, payload, format='json')
                 self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+        self.assertEqual(Book.objects.count(), 0)
+
+    def test_create_book_accepts_and_persists_an_optional_cover_image(self):
+        with TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            response = self.client.post(
+                self.list_url,
+                {**make_book_data(), 'image': make_test_image_upload()},
+                format='multipart',
+            )
+
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            self.assertIn('/media/books/cover', response.data['image'])
+            book = Book.objects.get()
+            self.assertTrue(book.image.storage.exists(book.image.name))
+            self.assertTrue(Path(media_root, book.image.name).is_file())
+
+    def test_cover_replacement_removal_and_book_deletion_clean_up_files(self):
+        with TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            created = self.client.post(
+                self.list_url,
+                {**make_book_data(), 'image': make_test_image_upload()},
+                format='multipart',
+            )
+            book = Book.objects.get(pk=created.data['id'])
+            original_image = book.image.name
+
+            with self.captureOnCommitCallbacks(execute=True):
+                replaced = self.client.put(
+                    f'{self.list_url}/{book.pk}',
+                    {**make_book_data(number=2), 'image': make_test_image_upload()},
+                    format='multipart',
+                )
+            book.refresh_from_db()
+            replacement_image = book.image.name
+
+            self.assertEqual(replaced.status_code, status.HTTP_200_OK)
+            self.assertNotEqual(original_image, replacement_image)
+            self.assertFalse(book.image.storage.exists(original_image))
+            self.assertTrue(book.image.storage.exists(replacement_image))
+
+            with self.captureOnCommitCallbacks(execute=True):
+                removed = self.client.put(
+                    f'{self.list_url}/{book.pk}',
+                    {**make_book_data(number=2), 'remove_image': 'true'},
+                    format='multipart',
+                )
+
+            self.assertEqual(removed.status_code, status.HTTP_200_OK)
+            self.assertIsNone(removed.data['image'])
+            self.assertFalse(book.image.storage.exists(replacement_image))
+
+            with self.captureOnCommitCallbacks(execute=True):
+                deleted = self.client.delete(f'{self.list_url}/{book.pk}')
+
+            self.assertEqual(deleted.status_code, status.HTTP_204_NO_CONTENT)
+            self.assertFalse(book.image.storage.exists(replacement_image))
+
+    def test_create_book_rejects_non_image_file_extensions(self):
+        response = self.client.post(
+            self.list_url,
+            {
+                **make_book_data(),
+                'image': SimpleUploadedFile(
+                    'cover.txt',
+                    b'not an image',
+                    content_type='text/plain',
+                ),
+            },
+            format='multipart',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('image', response.data)
         self.assertEqual(Book.objects.count(), 0)
 
     def test_create_rejects_duplicate_normalized_isbn_with_400(self):
@@ -263,12 +432,14 @@ class BookCRUDAPITests(APITestCase):
         self.assertEqual(Book.objects.count(), 1)
 
     def test_list_returns_paginated_results(self):
+        created_ids = []
         for number in range(1, 13):
-            self.client.post(
+            response = self.client.post(
                 self.list_url,
                 make_book_data(number),
                 format='json',
             )
+            created_ids.append(response.data['id'])
 
         first_page = self.client.get(self.list_url)
         second_page = self.client.get(self.list_url, {'page': 2})
@@ -279,9 +450,21 @@ class BookCRUDAPITests(APITestCase):
         self.assertEqual(len(first_page.data['results']), 10)
         self.assertIsNotNone(first_page.data['next'])
         self.assertIsNone(first_page.data['previous'])
+        self.assertEqual(
+            [book['id'] for book in first_page.data['results']],
+            list(reversed(created_ids))[0:10],
+        )
         self.assertEqual(len(second_page.data['results']), 2)
         self.assertIsNotNone(second_page.data['previous'])
+        self.assertEqual(
+            [book['id'] for book in second_page.data['results']],
+            list(reversed(created_ids))[10:],
+        )
         self.assertEqual(len(larger_page.data['results']), 12)
+        self.assertEqual(
+            [book['id'] for book in larger_page.data['results']],
+            list(reversed(created_ids)),
+        )
 
     def test_list_caps_requested_page_size_at_one_hundred(self):
         Book.objects.bulk_create(
@@ -411,13 +594,22 @@ class BookFilterAPITests(APITestCase):
     category_url = '/books/search'
     low_stock_url = '/books/low-stock'
 
-    def create_book(self, number, *, category='Fiction', stock_quantity=5):
+    def create_book(
+        self,
+        number,
+        *,
+        category='Fiction',
+        stock_quantity=5,
+        title=None,
+    ):
+        overrides = {
+            'category': category,
+            'stock_quantity': stock_quantity,
+        }
+        if title is not None:
+            overrides['title'] = title
         return Book.objects.create(
-            **make_book_data(
-                number,
-                category=category,
-                stock_quantity=stock_quantity,
-            )
+            **make_book_data(number, **overrides)
         )
 
     def test_category_search_trims_whitespace_and_ignores_case(self):
@@ -434,17 +626,67 @@ class BookFilterAPITests(APITestCase):
         self.assertEqual(response.data['count'], 2)
         self.assertEqual(
             [book['id'] for book in response.data['results']],
-            [matching.pk, also_matching.pk],
+            [also_matching.pk, matching.pk],
         )
 
-    def test_category_search_requires_nonblank_category(self):
+    def test_search_requires_at_least_one_nonblank_filter(self):
         missing = self.client.get(self.category_url)
         blank = self.client.get(self.category_url, {'category': '   '})
+        blank_title = self.client.get(self.category_url, {'title': '   '})
 
         self.assertEqual(missing.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('category', missing.data)
+        self.assertIn('filters', missing.data)
         self.assertEqual(blank.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('category', blank.data)
+        self.assertIn('filters', blank.data)
+        self.assertEqual(blank_title.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('filters', blank_title.data)
+
+    def test_search_matches_title_partially_without_case_sensitivity(self):
+        matching = self.create_book(1, title='The Great Gatsby')
+        also_matching = self.create_book(
+            3,
+            category='History',
+            title='The Great History',
+        )
+        self.create_book(2, title='A Different Story')
+
+        response = self.client.get(
+            self.category_url,
+            {'title': '  gReAt  '},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(
+            [book['id'] for book in response.data['results']],
+            [also_matching.pk, matching.pk],
+        )
+
+    def test_search_combines_title_and_category_filters(self):
+        matching = self.create_book(
+            1,
+            category='Literature',
+            title='The Great Gatsby',
+        )
+        self.create_book(
+            2,
+            category='Science',
+            title='The Great Science Book',
+        )
+        self.create_book(
+            3,
+            category='Literature',
+            title='A Different Story',
+        )
+
+        response = self.client.get(
+            self.category_url,
+            {'title': 'great', 'category': 'literature'},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['id'], matching.pk)
 
     def test_category_search_returns_empty_page_when_no_books_match(self):
         self.create_book(1, category='Fiction')
@@ -612,7 +854,7 @@ class BookLowStockAPITests(APITestCase):
         self.assertEqual(response.data['count'], 3)
         self.assertEqual(
             [book['id'] for book in response.data['results']],
-            [zero_stock.pk, below_threshold.pk, at_threshold.pk],
+            [at_threshold.pk, below_threshold.pk, zero_stock.pk],
         )
 
     def test_low_stock_defaults_threshold_to_ten(self):
@@ -759,3 +1001,24 @@ class PriceCalculationTests(APITestCase):
 
         self.assertEqual(calculation.exchange_rate, Decimal('0.85'))
         exchange_rate_service.get_rate.assert_called_once_with()
+
+
+class DemoBookSeedCommandTests(TestCase):
+    def test_seed_adds_200_books_idempotently_and_preserves_existing_records(self):
+        existing_book = Book.objects.create(
+            title='My existing title',
+            author='My existing author',
+            isbn='9780140350456',
+            cost_usd=Decimal('12.50'),
+            stock_quantity=5,
+            category='Fiction',
+            supplier_country='US',
+        )
+
+        call_command('seed_demo_books', stdout=StringIO())
+        self.assertEqual(Book.objects.count(), 200)
+        existing_book.refresh_from_db()
+        self.assertEqual(existing_book.title, 'My existing title')
+
+        call_command('seed_demo_books', stdout=StringIO())
+        self.assertEqual(Book.objects.count(), 200)

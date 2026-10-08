@@ -2,13 +2,14 @@ import re
 
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
 )
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -20,12 +21,13 @@ from .serializers import BookSerializer
 
 
 @api_view(['GET'])
+@renderer_classes([JSONRenderer])
 def health_check(request):
     return Response({'status': 'ok'})
 
 
 class BookListCreateView(ListCreateAPIView):
-    queryset = Book.objects.all().order_by('id')
+    queryset = Book.objects.all().order_by('-id')
     serializer_class = BookSerializer
     pagination_class = BookPagination
     http_method_names = ['get', 'post', 'head', 'options']
@@ -44,11 +46,21 @@ class BookCategorySearchView(ListAPIView):
 
     def get_queryset(self):
         category = self.request.query_params.get('category', '').strip()
-        if not category:
+        title = self.request.query_params.get('title', '').strip()
+        if not category and not title:
             raise ValidationError(
-                {'category': 'This query parameter is required and cannot be blank.'}
+                {
+                    'filters': (
+                        'Provide a nonblank title, category, or both query parameters.'
+                    )
+                }
             )
-        return Book.objects.filter(category__iexact=category).order_by('id')
+        queryset = Book.objects.all()
+        if category:
+            queryset = queryset.filter(category__iexact=category)
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+        return queryset.order_by('-id')
 
 
 class BookLowStockView(ListAPIView):
@@ -64,7 +76,7 @@ class BookLowStockView(ListAPIView):
             )
         threshold = int(raw_threshold)
 
-        return Book.objects.filter(stock_quantity__lte=threshold).order_by('id')
+        return Book.objects.filter(stock_quantity__lte=threshold).order_by('-id')
 
 
 class BookCalculatePriceView(APIView):

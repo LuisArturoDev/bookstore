@@ -1,0 +1,1002 @@
+[
+    {
+        "title":  "White Fang",
+        "author":  "Jack London",
+        "isbn":  "9780140350456"
+    },
+    {
+        "title":  "The Twits",
+        "author":  "Roald Dahl",
+        "isbn":  "9780141371474"
+    },
+    {
+        "title":  "Pyramids",
+        "author":  "Terry Pratchett",
+        "isbn":  "9780061020650"
+    },
+    {
+        "title":  "One Of Us Is Lying",
+        "author":  "Karen M. McManus",
+        "isbn":  "9780593388013"
+    },
+    {
+        "title":  "The Passage",
+        "author":  "Justin Cronin",
+        "isbn":  "9782221111130"
+    },
+    {
+        "title":  "The Bell Jar",
+        "author":  "Sylvia Plath",
+        "isbn":  "9780553239607"
+    },
+    {
+        "title":  "The Haunting of Hill House",
+        "author":  "Shirley Jackson",
+        "isbn":  "9780141191447"
+    },
+    {
+        "title":  "The Silent Patient",
+        "author":  "Alex Michaelides",
+        "isbn":  "9781250301710"
+    },
+    {
+        "title":  "Emma",
+        "author":  "Jane Austen",
+        "isbn":  "9780395051153"
+    },
+    {
+        "title":  "Der Steppenwolf",
+        "author":  "Hermann Hesse",
+        "isbn":  "9780030121357"
+    },
+    {
+        "title":  "The Italian\u0027s Inexperienced Mistress",
+        "author":  "Lynne Graham",
+        "isbn":  "9781306208598"
+    },
+    {
+        "title":  "Animal Farm / Nineteen Eighty-Four",
+        "author":  "George Orwell",
+        "isbn":  "9781647986179"
+    },
+    {
+        "title":  "Caraval",
+        "author":  "Stephanie Garber",
+        "isbn":  "9781536438628"
+    },
+    {
+        "title":  "The Foundation Trilogy",
+        "author":  "Isaac Asimov",
+        "isbn":  "9783453042650"
+    },
+    {
+        "title":  "The Sun Also Rises",
+        "author":  "Ernest Hemingway",
+        "isbn":  "9788408010098"
+    },
+    {
+        "title":  "The Magician\u0027s Nephew",
+        "author":  "C. S. Lewis",
+        "isbn":  "9780898458770"
+    },
+    {
+        "title":  "The Hobbit",
+        "author":  "J.R.R. Tolkien",
+        "isbn":  "9785878600125"
+    },
+    {
+        "title":  "Nightfall",
+        "author":  "Isaac Asimov",
+        "isbn":  "9783453116894"
+    },
+    {
+        "title":  "A Wizard of Earthsea",
+        "author":  "Ursula K. Le Guin",
+        "isbn":  "9788376485652"
+    },
+    {
+        "title":  "Orlando",
+        "author":  "Virginia Woolf",
+        "isbn":  "9781974086238"
+    },
+    {
+        "title":  "Le Comte de Monte-Cristo, II",
+        "author":  "Alexandre Dumas",
+        "isbn":  "9783842406926"
+    },
+    {
+        "title":  "The Iron Heel",
+        "author":  "Jack London",
+        "isbn":  "9781974685684"
+    },
+    {
+        "title":  "The Caves of Steel",
+        "author":  "Isaac Asimov",
+        "isbn":  "9782290004043"
+    },
+    {
+        "title":  "Howl\u0027s Moving Castle",
+        "author":  "Diana Wynne Jones",
+        "isbn":  "9780007380459"
+    },
+    {
+        "title":  "Thinner",
+        "author":  "Stephen King",
+        "isbn":  "9783453021952"
+    },
+    {
+        "title":  "Animal Farm",
+        "author":  "George Orwell",
+        "isbn":  "9781722837273"
+    },
+    {
+        "title":  "The Vampire Lestat",
+        "author":  "Anne Rice",
+        "isbn":  "9780708831533"
+    },
+    {
+        "title":  "Foundation",
+        "author":  "Isaac Asimov",
+        "isbn":  "9780007270422"
+    },
+    {
+        "title":  "Ubik",
+        "author":  "Philip K. Dick",
+        "isbn":  "9788445008232"
+    },
+    {
+        "title":  "Snow Crash",
+        "author":  "Neal Stephenson",
+        "isbn":  "9780593599730"
+    },
+    {
+        "title":  "The Lightning Thief",
+        "author":  "Rick Riordan",
+        "isbn":  "9782013228176"
+    },
+    {
+        "title":  "The ones who walk away from Omelas",
+        "author":  "Ursula K. Le Guin",
+        "isbn":  "9789507511288"
+    },
+    {
+        "title":  "The Midnight Library",
+        "author":  "Matt Haig",
+        "isbn":  "9781786892720"
+    },
+    {
+        "title":  "A Christmas Carol",
+        "author":  "Charles Dickens",
+        "isbn":  "9781502809193"
+    },
+    {
+        "title":  "The Fellowship of the Ring",
+        "author":  "J.R.R. Tolkien",
+        "isbn":  "9781500410223"
+    },
+    {
+        "title":  "Little Women",
+        "author":  "Louisa May Alcott",
+        "isbn":  "9780140300765"
+    },
+    {
+        "title":  "A Little Life",
+        "author":  "Hanya Yanagihara",
+        "isbn":  "9788328037342"
+    },
+    {
+        "title":  "Voyage au Centre de la Terre",
+        "author":  "Jules Verne",
+        "isbn":  "9780553213973"
+    },
+    {
+        "title":  "The Prince and the Pauper",
+        "author":  "Mark Twain",
+        "isbn":  "9780517118153"
+    },
+    {
+        "title":  "The Legend of Sleepy Hollow",
+        "author":  "Washington Irving",
+        "isbn":  "9781544753966"
+    },
+    {
+        "title":  "A Tale of Two Cities",
+        "author":  "Charles Dickens",
+        "isbn":  "9780192817716"
+    },
+    {
+        "title":  "The Man in the Brown Suit",
+        "author":  "Agatha Christie",
+        "isbn":  "9781662291784"
+    },
+    {
+        "title":  "Anne of Avonlea",
+        "author":  "Lucy Maud Montgomery",
+        "isbn":  "9781536807059"
+    },
+    {
+        "title":  "Anne of Windy Poplars",
+        "author":  "Lucy Maud Montgomery",
+        "isbn":  "9781729502518"
+    },
+    {
+        "title":  "No Country for Old Men",
+        "author":  "Cormac McCarthy",
+        "isbn":  "9788439720379"
+    },
+    {
+        "title":  "Verity",
+        "author":  "Colleen Hoover",
+        "isbn":  "9786070799396"
+    },
+    {
+        "title":  "Kindred",
+        "author":  "Octavia E. Butler",
+        "isbn":  "9781411476073"
+    },
+    {
+        "title":  "The Long Haul",
+        "author":  "Jeff Kinney",
+        "isbn":  "9780141354217"
+    },
+    {
+        "title":  "Flatland",
+        "author":  "Edwin Abbott Abbott",
+        "isbn":  "9781798452486"
+    },
+    {
+        "title":  "Intensity",
+        "author":  "Dean Koontz",
+        "isbn":  "9780679449164"
+    },
+    {
+        "title":  "The Shining",
+        "author":  "Stephen King",
+        "isbn":  "9780451119674"
+    },
+    {
+        "title":  "The Lost World",
+        "author":  "Arthur Conan Doyle",
+        "isbn":  "9781079691757"
+    },
+    {
+        "title":  "Cantik Itu Luka",
+        "author":  "Eka Kurniawan",
+        "isbn":  "9786073162944"
+    },
+    {
+        "title":  "Where the Crawdads Sing",
+        "author":  "Delia Owens",
+        "isbn":  "9781472158666"
+    },
+    {
+        "title":  "Mort",
+        "author":  "Terry Pratchett",
+        "isbn":  "9783492280648"
+    },
+    {
+        "title":  "Rebecca",
+        "author":  "Daphne du Maurier",
+        "isbn":  "9784444415569"
+    },
+    {
+        "title":  "Harry Potter and the Philosopher\u0027s Stone",
+        "author":  "J. K. Rowling",
+        "isbn":  "9784863895669"
+    },
+    {
+        "title":  "Speak",
+        "author":  "Laurie Halse Anderson",
+        "isbn":  "9780141310886"
+    },
+    {
+        "title":  "The Awakening",
+        "author":  "Kate Chopin",
+        "isbn":  "9781673298109"
+    },
+    {
+        "title":  "Watership Down",
+        "author":  "Richard Adams",
+        "isbn":  "9788741838540"
+    },
+    {
+        "title":  "The Lost World",
+        "author":  "Michael Crichton",
+        "isbn":  "9780679765073"
+    },
+    {
+        "title":  "Anne of Green Gables",
+        "author":  "Lucy Maud Montgomery",
+        "isbn":  "9781798293553"
+    },
+    {
+        "title":  "Murder on the Links",
+        "author":  "Agatha Christie",
+        "isbn":  "9783502111139"
+    },
+    {
+        "title":  "Small Gods",
+        "author":  "Terry Pratchett",
+        "isbn":  "9781804990186"
+    },
+    {
+        "title":  "Powerless",
+        "author":  "Lauren Roberts",
+        "isbn":  "9781960854841"
+    },
+    {
+        "title":  "Atlas Shrugged (Centennial Ed. HC)",
+        "author":  "Ayn Rand",
+        "isbn":  "9781804221198"
+    },
+    {
+        "title":  "Odd Thomas",
+        "author":  "Dean Koontz",
+        "isbn":  "9780345533425"
+    },
+    {
+        "title":  "Pride and Prejudice",
+        "author":  "Jane Austen",
+        "isbn":  "9781546785484"
+    },
+    {
+        "title":  "The Eyes of Darkness",
+        "author":  "Dean Koontz",
+        "isbn":  "9780913165416"
+    },
+    {
+        "title":  "The Last Battle",
+        "author":  "C. S. Lewis",
+        "isbn":  "9780816140954"
+    },
+    {
+        "title":  "Fire and Ice",
+        "author":  "Erin Hunter",
+        "isbn":  "9780008637446"
+    },
+    {
+        "title":  "The War of the Worlds",
+        "author":  "H. G. Wells",
+        "isbn":  "9781800604919"
+    },
+    {
+        "title":  "Frankenstein; or, The Modern Prometheus",
+        "author":  "Mary Shelley",
+        "isbn":  "9781080042920"
+    },
+    {
+        "title":  "The Tombs of Atuan",
+        "author":  "Ursula K. Le Guin",
+        "isbn":  "9780553273311"
+    },
+    {
+        "title":  "The Time Machine",
+        "author":  "H. G. Wells",
+        "isbn":  "9781790777457"
+    },
+    {
+        "title":  "The Road",
+        "author":  "Cormac McCarthy",
+        "isbn":  "9781436100793"
+    },
+    {
+        "title":  "Persuasion",
+        "author":  "Jane Austen",
+        "isbn":  "9781703938401"
+    },
+    {
+        "title":  "The Scarlet Letter",
+        "author":  "Nathaniel Hawthorne",
+        "isbn":  "9780781230384"
+    },
+    {
+        "title":  "The Spanish Groom",
+        "author":  "Lynne Graham",
+        "isbn":  "9780263816617"
+    },
+    {
+        "title":  "Giovanni\u0027s Room",
+        "author":  "James Baldwin",
+        "isbn":  "9785875320040"
+    },
+    {
+        "title":  "Dune",
+        "author":  "Frank Herbert",
+        "isbn":  "9780340839935"
+    },
+    {
+        "title":  "Shatter Me Complete Collection",
+        "author":  "Tahereh Mafi",
+        "isbn":  "9780063353787"
+    },
+    {
+        "title":  "Desire for Revenge",
+        "author":  "Penny Jordan",
+        "isbn":  "9781408999158"
+    },
+    {
+        "title":  "The Light Fantastic",
+        "author":  "Terry Pratchett",
+        "isbn":  "9788373379923"
+    },
+    {
+        "title":  "Blood Meridian",
+        "author":  "Cormac McCarthy",
+        "isbn":  "9780330544580"
+    },
+    {
+        "title":  "The Picture of Dorian Gray",
+        "author":  "Oscar Wilde",
+        "isbn":  "9783749468294"
+    },
+    {
+        "title":  "Along Came a Spider",
+        "author":  "James Patterson",
+        "isbn":  "9781306755047"
+    },
+    {
+        "title":  "The Invisible Man",
+        "author":  "H. G. Wells",
+        "isbn":  "9781693224188"
+    },
+    {
+        "title":  "The Wonderful Wizard of Oz",
+        "author":  "L. Frank Baum",
+        "isbn":  "9780824982645"
+    },
+    {
+        "title":  "The Wicked King",
+        "author":  "Holly Black",
+        "isbn":  "9781471408656"
+    },
+    {
+        "title":  "The Sign of Four",
+        "author":  "Arthur Conan Doyle",
+        "isbn":  "9789999654005"
+    },
+    {
+        "title":  "Treasure",
+        "author":  "Clive Cussler",
+        "isbn":  "9788477300755"
+    },
+    {
+        "title":  "Restore me",
+        "author":  "Tahereh Mafi",
+        "isbn":  "9780062676375"
+    },
+    {
+        "title":  "Diary of a Wimpy Kid",
+        "author":  "Jeff Kinney",
+        "isbn":  "9781536908336"
+    },
+    {
+        "title":  "Dog Days",
+        "author":  "Jeff Kinney",
+        "isbn":  "9780141327655"
+    },
+    {
+        "title":  "A Good Girl\u0027s Guide to Murder",
+        "author":  "Holly Jackson",
+        "isbn":  "9786070791321"
+    },
+    {
+        "title":  "Crown of Midnight",
+        "author":  "Sarah J. Maas",
+        "isbn":  "9781619630628"
+    },
+    {
+        "title":  "Hopeless",
+        "author":  "Colleen Hoover",
+        "isbn":  "9781481251884"
+    },
+    {
+        "title":  "The Hero of Ages",
+        "author":  "Brandon Sanderson",
+        "isbn":  "9780792776444"
+    },
+    {
+        "title":  "The Secret Garden",
+        "author":  "Frances Hodgson Burnett",
+        "isbn":  "9781541050822"
+    },
+    {
+        "title":  "They Both Die at the End",
+        "author":  "Adam Silvera",
+        "isbn":  "9781398514751"
+    },
+    {
+        "title":  "The Dragonet Prophecy",
+        "author":  "Tui T. Sutherland",
+        "isbn":  "9781432874490"
+    },
+    {
+        "title":  "Moby Dick",
+        "author":  "Herman Melville",
+        "isbn":  "9788467732009"
+    },
+    {
+        "title":  "The Summer I Turned Pretty",
+        "author":  "Jenny Han",
+        "isbn":  "9780141956749"
+    },
+    {
+        "title":  "The Darkest Hour",
+        "author":  "Erin Hunter",
+        "isbn":  "9780062367013"
+    },
+    {
+        "title":  "Carmilla",
+        "author":  "Sheridan Le Fanu",
+        "isbn":  "9781507890141"
+    },
+    {
+        "title":  "Fahrenheit 451",
+        "author":  "Ray Bradbury",
+        "isbn":  "9781973404439"
+    },
+    {
+        "title":  "Mrs. Dalloway",
+        "author":  "Virginia Woolf",
+        "isbn":  "9781954525009"
+    },
+    {
+        "title":  "The Darkest Minds",
+        "author":  "Alexandra Bracken",
+        "isbn":  "9781368023238"
+    },
+    {
+        "title":  "Nineteen Eighty-Four",
+        "author":  "George Orwell",
+        "isbn":  "9781974272846"
+    },
+    {
+        "title":  "Redeeming Love",
+        "author":  "Francine Rivers",
+        "isbn":  "9781854246592"
+    },
+    {
+        "title":  "A Princess of Mars",
+        "author":  "Edgar Rice Burroughs",
+        "isbn":  "9781475281965"
+    },
+    {
+        "title":  "The Plot Against America",
+        "author":  "Philip Roth",
+        "isbn":  "9780618509287"
+    },
+    {
+        "title":  "Matilda",
+        "author":  "Roald Dahl",
+        "isbn":  "9780606104845"
+    },
+    {
+        "title":  "The Stars, Like Dust",
+        "author":  "Isaac Asimov",
+        "isbn":  "9782290332818"
+    },
+    {
+        "title":  "The Enchanted Castle",
+        "author":  "Edith Nesbit",
+        "isbn":  "9781543037517"
+    },
+    {
+        "title":  "Unravel me",
+        "author":  "Tahereh Mafi",
+        "isbn":  "9788817091169"
+    },
+    {
+        "title":  "Metamorphosis",
+        "author":  "Franz Kafka",
+        "isbn":  "9781717476807"
+    },
+    {
+        "title":  "Double Down",
+        "author":  "Jeff Kinney",
+        "isbn":  "9781419724862"
+    },
+    {
+        "title":  "Dune Messiah",
+        "author":  "Frank Herbert",
+        "isbn":  "9788466372015"
+    },
+    {
+        "title":  "Pollyanna",
+        "author":  "Eleanor Hodgman Porter",
+        "isbn":  "9781986753449"
+    },
+    {
+        "title":  "The Hunger Games",
+        "author":  "Suzanne Collins",
+        "isbn":  "9782266305754"
+    },
+    {
+        "title":  "The Mote in God\u0027s Eye",
+        "author":  "Larry Niven",
+        "isbn":  "9780671456184"
+    },
+    {
+        "title":  "Coraline",
+        "author":  "Neil Gaiman",
+        "isbn":  "9780060571528"
+    },
+    {
+        "title":  "The Silmarillion",
+        "author":  "J.R.R. Tolkien",
+        "isbn":  "9780812423020"
+    },
+    {
+        "title":  "Harry Potter and the Chamber of Secrets",
+        "author":  "J. K. Rowling",
+        "isbn":  "9788183220392"
+    },
+    {
+        "title":  "Adventures of Huckleberry Finn",
+        "author":  "Mark Twain",
+        "isbn":  "9781975945602"
+    },
+    {
+        "title":  "The Mysterious Affair at Styles",
+        "author":  "Agatha Christie",
+        "isbn":  "9789355220431"
+    },
+    {
+        "title":  "The Great Gatsby",
+        "author":  "F. Scott Fitzgerald",
+        "isbn":  "9781731494047"
+    },
+    {
+        "title":  "Red, White \u0026 Royal Blue",
+        "author":  "Casey McQuiston",
+        "isbn":  "9788427218697"
+    },
+    {
+        "title":  "November 9",
+        "author":  "Colleen Hoover",
+        "isbn":  "9781785412691"
+    },
+    {
+        "title":  "The blue castle",
+        "author":  "Lucy Maud Montgomery",
+        "isbn":  "9781099309564"
+    },
+    {
+        "title":  "The End of Eternity",
+        "author":  "Isaac Asimov",
+        "isbn":  "9780893403386"
+    },
+    {
+        "title":  "It Ends With Us",
+        "author":  "Colleen Hoover",
+        "isbn":  "9789898800985"
+    },
+    {
+        "title":  "The Valley of Fear",
+        "author":  "Arthur Conan Doyle",
+        "isbn":  "9780719529498"
+    },
+    {
+        "title":  "Equal Rites",
+        "author":  "Terry Pratchett",
+        "isbn":  "9788085609547"
+    },
+    {
+        "title":  "Sideways Stories from Wayside School",
+        "author":  "Louis Sachar",
+        "isbn":  "9780545324847"
+    },
+    {
+        "title":  "The Dispossessed",
+        "author":  "Ursula K. Le Guin",
+        "isbn":  "9780575079038"
+    },
+    {
+        "title":  "The Naked Sun",
+        "author":  "Isaac Asimov",
+        "isbn":  "9780586010167"
+    },
+    {
+        "title":  "We Have Always Lived in the Castle",
+        "author":  "Shirley Jackson",
+        "isbn":  "9780141193939"
+    },
+    {
+        "title":  "The King in Yellow",
+        "author":  "Robert W. Chambers",
+        "isbn":  "9781406514216"
+    },
+    {
+        "title":  "Circe",
+        "author":  "Madeline Miller",
+        "isbn":  "9781526612519"
+    },
+    {
+        "title":  "Harry Potter (series) 1-7",
+        "author":  "J. K. Rowling",
+        "isbn":  "9781408882290"
+    },
+    {
+        "title":  "The Cruel Prince",
+        "author":  "Holly Black",
+        "isbn":  "9780316310314"
+    },
+    {
+        "title":  "Misery",
+        "author":  "Stephen King",
+        "isbn":  "9782253151371"
+    },
+    {
+        "title":  "The Blade Itself",
+        "author":  "Joe Abercrombie",
+        "isbn":  "9780316387330"
+    },
+    {
+        "title":  "The Girl Who Loved Tom Gordon",
+        "author":  "Stephen King",
+        "isbn":  "9783453441095"
+    },
+    {
+        "title":  "I Have No Mouth and I Must Scream",
+        "author":  "Harlan Ellison",
+        "isbn":  "9780441363940"
+    },
+    {
+        "title":  "The Summer I Turned Pretty Trilogy",
+        "author":  "Jenny Han",
+        "isbn":  "9781442499713"
+    },
+    {
+        "title":  "Good Girl, Bad Blood",
+        "author":  "Holly Jackson",
+        "isbn":  "9781984896414"
+    },
+    {
+        "title":  "Shatter Me",
+        "author":  "Tahereh Mafi",
+        "isbn":  "9780603580659"
+    },
+    {
+        "title":  "Exile",
+        "author":  "Shannon Messenger",
+        "isbn":  "9782371020276"
+    },
+    {
+        "title":  "To Kill a Mockingbird",
+        "author":  "Harper Lee",
+        "isbn":  "9780330241182"
+    },
+    {
+        "title":  "The Secret Adversary",
+        "author":  "Agatha Christie",
+        "isbn":  "9781434614483"
+    },
+    {
+        "title":  "A Gentleman in Moscow",
+        "author":  "Amor Towles",
+        "isbn":  "9780099558781"
+    },
+    {
+        "title":  "Brave New World",
+        "author":  "Aldous Huxley",
+        "isbn":  "9780792753216"
+    },
+    {
+        "title":  "The Princess Bride",
+        "author":  "William Goldman",
+        "isbn":  "9780345242259"
+    },
+    {
+        "title":  "Jurassic Park",
+        "author":  "Michael Crichton",
+        "isbn":  "9787806578551"
+    },
+    {
+        "title":  "Deception Point",
+        "author":  "Dan Brown",
+        "isbn":  "9780552149198"
+    },
+    {
+        "title":  "The Hitchhiker\u0027s Guide to the Galaxy",
+        "author":  "Douglas Adams",
+        "isbn":  "9780575074842"
+    },
+    {
+        "title":  "The One (The Selection #3)",
+        "author":  "Kiera Cass",
+        "isbn":  "9788416240623"
+    },
+    {
+        "title":  "We\u0027ll Always Have Summer",
+        "author":  "Jenny Han",
+        "isbn":  "9788408112648"
+    },
+    {
+        "title":  "Anthem",
+        "author":  "Ayn Rand",
+        "isbn":  "9781538020661"
+    },
+    {
+        "title":  "Defy Me (Shatter Me)",
+        "author":  "Tahereh Mafi",
+        "isbn":  "9780008731366"
+    },
+    {
+        "title":  "Insomnia",
+        "author":  "Stephen King",
+        "isbn":  "9785170178285"
+    },
+    {
+        "title":  "La Peste",
+        "author":  "Albert Camus",
+        "isbn":  "9781508883593"
+    },
+    {
+        "title":  "Ignite Me",
+        "author":  "Tahereh Mafi",
+        "isbn":  "9780062085580"
+    },
+    {
+        "title":  "The Clan of the Cave Bear",
+        "author":  "Jean M. Auel",
+        "isbn":  "9781439574324"
+    },
+    {
+        "title":  "Sula",
+        "author":  "Toni Morrison",
+        "isbn":  "9781448105021"
+    },
+    {
+        "title":  "The Mystery of the Blue Train",
+        "author":  "Agatha Christie",
+        "isbn":  "9780754054764"
+    },
+    {
+        "title":  "Rising Storm",
+        "author":  "Erin Hunter",
+        "isbn":  "9783407743213"
+    },
+    {
+        "title":  "The Robots of Dawn",
+        "author":  "Isaac Asimov",
+        "isbn":  "9780898451429"
+    },
+    {
+        "title":  "The Titan\u0027s Curse",
+        "author":  "Rick Riordan",
+        "isbn":  "9781480614949"
+    },
+    {
+        "title":  "Chapterhouse Dune",
+        "author":  "Frank Herbert",
+        "isbn":  "9786257737593"
+    },
+    {
+        "title":  "The Godfather",
+        "author":  "Mario Puzo",
+        "isbn":  "9780451157362"
+    },
+    {
+        "title":  "The Strange Case of Dr. Jekyll and Mr. Hyde",
+        "author":  "Robert Louis Stevenson",
+        "isbn":  "9780893753573"
+    },
+    {
+        "title":  "Demian",
+        "author":  "Hermann Hesse",
+        "isbn":  "9789872074814"
+    },
+    {
+        "title":  "The Wind in the Willows",
+        "author":  "Kenneth Grahame",
+        "isbn":  "9781093466904"
+    },
+    {
+        "title":  "Ulysses",
+        "author":  "James Joyce",
+        "isbn":  "9781840226355"
+    },
+    {
+        "title":  "A Dangerous Path",
+        "author":  "Erin Hunter",
+        "isbn":  "9781538501559"
+    },
+    {
+        "title":  "Rising Tides",
+        "author":  "Nora Roberts",
+        "isbn":  "9780749952624"
+    },
+    {
+        "title":  "The Handmaid\u0027s Tale",
+        "author":  "Margaret Atwood",
+        "isbn":  "9781984899668"
+    },
+    {
+        "title":  "Sense and Sensibility",
+        "author":  "Jane Austen",
+        "isbn":  "9781973216643"
+    },
+    {
+        "title":  "Can We Be Strangers Again?",
+        "author":  "Shrijeet Shandilya",
+        "isbn":  "9780143475927"
+    },
+    {
+        "title":  "Kane \u0026 Abel",
+        "author":  "Jeffrey Archer",
+        "isbn":  "9780671251215"
+    },
+    {
+        "title":  "Anne of the Island",
+        "author":  "Lucy Maud Montgomery",
+        "isbn":  "9781545462331"
+    },
+    {
+        "title":  "Artemis",
+        "author":  "Andy Weir",
+        "isbn":  "9780553448146"
+    },
+    {
+        "title":  "His Last Bow [8 stories]",
+        "author":  "Arthur Conan Doyle",
+        "isbn":  "9780719503719"
+    },
+    {
+        "title":  "Dracula",
+        "author":  "Bram Stoker",
+        "isbn":  "9781794593121"
+    },
+    {
+        "title":  "Project Hail Mary",
+        "author":  "Andy Weir",
+        "isbn":  "9781529100631"
+    },
+    {
+        "title":  "The Sea of Monsters",
+        "author":  "Rick Riordan",
+        "isbn":  "9780606265003"
+    },
+    {
+        "title":  "All your perfects",
+        "author":  "Colleen Hoover",
+        "isbn":  "9788375155440"
+    },
+    {
+        "title":  "The Exorcist",
+        "author":  "William Peter Blatty",
+        "isbn":  "9780552156882"
+    },
+    {
+        "title":  "The Fall of Hyperion",
+        "author":  "Dan Simmons",
+        "isbn":  "9782221069578"
+    },
+    {
+        "title":  "Under the Dome",
+        "author":  "Stephen King",
+        "isbn":  "9788376487571"
+    },
+    {
+        "title":  "A Little Princess",
+        "author":  "Frances Hodgson Burnett",
+        "isbn":  "9780451525093"
+    },
+    {
+        "title":  "Oliver Twist",
+        "author":  "Charles Dickens",
+        "isbn":  "9781116629019"
+    },
+    {
+        "title":  "The Virgin Suicides (Bloomsbury Classic)",
+        "author":  "Jeffrey Eugenides",
+        "isbn":  "9789722024495"
+    },
+    {
+        "title":  "The Outsiders",
+        "author":  "S. E. Hinton",
+        "isbn":  "9781484492222"
+    },
+    {
+        "title":  "Interview With the Vampire",
+        "author":  "Anne Rice",
+        "isbn":  "9782265079625"
+    }
+]
