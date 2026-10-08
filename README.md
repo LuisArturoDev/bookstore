@@ -59,7 +59,7 @@ Django lee `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` desde variables de entorno de
 - [x] FASE 1 — Django básico.
 - [x] FASE 2 — Modelo `Book`.
 - [x] FASE 3 — CRUD.
-- [ ] FASE 4 — Filtros.
+- [x] FASE 4 — Filtros.
 - [ ] FASE 5 — Integración de tasas de cambio.
 - [ ] FASE 6 — Cálculo del precio.
 - [ ] FASE 7 — Tests.
@@ -108,6 +108,21 @@ Ejemplo de creación:
 El listado usa paginación por número de página: `GET /books?page=2&page_size=20`. El tamaño predeterminado es 10 y el máximo es 100. La respuesta incluye `count`, `next`, `previous` y `results`. Los errores de entrada, incluido un ISBN inválido o duplicado, se devuelven como `400 Bad Request`. El precio sugerido y los timestamps son campos de solo lectura. `PUT` requiere todos los campos editables; no se habilitó `PATCH`.
 
 Para ejecutar las pruebas del modelo, serializer y CRUD:
+
+```powershell
+python backend\manage.py test books.tests
+```
+
+### Filtros de inventario (FASE 4)
+
+| Método | Ruta | Comportamiento |
+|---|---|---|
+| `GET` | `/books/search?category=Literature` | Filtra por categoría sin distinguir mayúsculas/minúsculas; elimina espacios al inicio/final del valor. |
+| `GET` | `/books/low-stock?threshold=10` | Devuelve libros cuyo stock es menor o igual al umbral. El umbral predeterminado es 10. |
+
+Ambos endpoints conservan la paginación de `/books`, incluyendo `page`, `page_size` y `count`/`next`/`previous`/`results`. Una categoría ausente o en blanco, o un umbral que no sea un entero no negativo, produce `400 Bad Request`. Un filtro válido sin coincidencias devuelve una página vacía con `200 OK`.
+
+Para ejecutar las pruebas focalizadas de CRUD y filtros:
 
 ```powershell
 python backend\manage.py test books.tests

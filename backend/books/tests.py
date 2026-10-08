@@ -347,3 +347,134 @@ class BookCRUDAPITests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class BookFilterAPITests(APITestCase):
+    category_url = '/books/search'
+    low_stock_url = '/books/low-stock'
+
+    def create_book(self, number, *, category='Fiction', stock_quantity=5):
+        return Book.objects.create(
+            **make_book_data(
+                number,
+                category=category,
+                stock_quantity=stock_quantity,
+            )
+        )
+
+    def test_category_search_trims_whitespace_and_ignores_case(self):
+        matching = self.create_book(1, category='Literature')
+        self.create_book(2, category='Science')
+        also_matching = self.create_book(3, category='LITERATURE')
+
+        response = self.client.get(
+            self.category_url,
+            {'category': '  literature  '},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(
+            [book['id'] for book in response.data['results']],
+            [matching.pk, also_matching.pk],
+        )
+
+    def test_category_search_requires_nonblank_category(self):
+        missing = self.client.get(self.category_url)
+        blank = self.client.get(self.category_url, {'category': '   '})
+
+        self.assertEqual(missing.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('category', missing.data)
+        self.assertEqual(blank.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('category', blank.data)
+
+    def test_category_search_returns_empty_page_when_no_books_match(self):
+        self.create_book(1, category='Fiction')
+
+        response = self.client.get(
+            self.category_url,
+            {'category': 'Nonfiction'},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 0)
+        self.assertEqual(response.data['results'], [])
+
+    def test_category_search_uses_standard_pagination(self):
+        for number in range(1, 12):
+            self.create_book(number, category='History')
+
+        first_page = self.client.get(
+            self.category_url,
+            {'category': 'History'},
+        )
+        second_page = self.client.get(
+            self.category_url,
+            {'category': 'History', 'page': 2},
+        )
+
+        self.assertEqual(first_page.data['count'], 11)
+        self.assertEqual(len(first_page.data['results']), 10)
+        self.assertIsNotNone(first_page.data['next'])
+        self.assertEqual(len(second_page.data['results']), 1)
+        self.assertIsNotNone(second_page.data['previous'])
+
+    def test_low_stock_uses_inclusive_threshold_and_includes_zero(self):
+        zero_stock = self.create_book(1, stock_quantity=0)
+        below_threshold = self.create_book(2, stock_quantity=4)
+        at_threshold = self.create_book(3, stock_quantity=10)
+        self.create_book(4, stock_quantity=11)
+
+        response = self.client.get(self.low_stock_url, {'threshold': '10'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 3)
+        self.assertEqual(
+            [book['id'] for book in response.data['results']],
+            [zero_stock.pk, below_threshold.pk, at_threshold.pk],
+        )
+
+    def test_low_stock_defaults_threshold_to_ten(self):
+        self.create_book(1, stock_quantity=10)
+        self.create_book(2, stock_quantity=11)
+
+        response = self.client.get(self.low_stock_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+
+    def test_low_stock_accepts_zero_threshold(self):
+        zero_stock = self.create_book(1, stock_quantity=0)
+        self.create_book(2, stock_quantity=1)
+
+        response = self.client.get(self.low_stock_url, {'threshold': '0'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['id'], zero_stock.pk)
+
+    def test_low_stock_rejects_negative_or_noninteger_threshold(self):
+        for threshold in ('-1', '1.5', 'abc', '1_0'):
+            with self.subTest(threshold=threshold):
+                response = self.client.get(
+                    self.low_stock_url,
+                    {'threshold': threshold},
+                )
+
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn('threshold', response.data)
+
+    def test_low_stock_uses_standard_pagination(self):
+        for number in range(1, 12):
+            self.create_book(number, stock_quantity=1)
+
+        first_page = self.client.get(self.low_stock_url, {'threshold': '1'})
+        second_page = self.client.get(
+            self.low_stock_url,
+            {'threshold': '1', 'page': 2},
+        )
+
+        self.assertEqual(first_page.data['count'], 11)
+        self.assertEqual(len(first_page.data['results']), 10)
+        self.assertIsNotNone(first_page.data['next'])
+        self.assertEqual(len(second_page.data['results']), 1)
