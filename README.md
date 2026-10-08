@@ -57,8 +57,8 @@ Django lee `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` desde variables de entorno de
 
 - [x] FASE 0 — Preparación del repositorio y configuración inicial.
 - [x] FASE 1 — Django básico.
-- [ ] FASE 2 — Modelo `Book`.
-- [ ] FASE 3 — CRUD.
+- [x] FASE 2 — Modelo `Book`.
+- [x] FASE 3 — CRUD.
 - [ ] FASE 4 — Filtros.
 - [ ] FASE 5 — Integración de tasas de cambio.
 - [ ] FASE 6 — Cálculo del precio.
@@ -69,11 +69,45 @@ Django lee `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` desde variables de entorno de
 - [ ] FASE 11 — Documentación final.
 - [ ] FASE 12 — Docker (opcional).
 
-React y Vite se inicializarán en FASE 8. El CRUD, los filtros, las tasas de cambio y el cálculo de precio pertenecen a fases posteriores.
+React y Vite se inicializarán en FASE 8. Los filtros, las tasas de cambio y el cálculo de precio pertenecen a fases posteriores.
 
 ### Modelo `Book` (FASE 2)
 
 El modelo persistente contiene los datos del libro, valida y normaliza ISBN-10/ISBN-13, impide ISBN duplicados y aplica restricciones de costo positivo y stock no negativo. `selling_price_local` permanece nulo hasta una fase posterior. Para ejecutar las pruebas del modelo y su serializer:
+
+```powershell
+python backend\manage.py test books.tests
+```
+
+### API CRUD de libros (FASE 3)
+
+Con el servidor iniciado, la API expone estas rutas sin prefijo `/api` ni barra final:
+
+| Método | Ruta | Resultado |
+|---|---|---|
+| `POST` | `/books` | Crea un libro y devuelve `201 Created`. |
+| `GET` | `/books` | Devuelve la página solicitada. |
+| `GET` | `/books/{id}` | Devuelve un libro o `404 Not Found`. |
+| `PUT` | `/books/{id}` | Reemplaza los campos editables o devuelve `400`/`404`. |
+| `DELETE` | `/books/{id}` | Elimina el libro y devuelve `204 No Content` o `404`. |
+
+Ejemplo de creación:
+
+```json
+{
+  "title": "The Example Book",
+  "author": "Example Author",
+  "isbn": "978-0-306-40615-7",
+  "cost_usd": "15.99",
+  "stock_quantity": 25,
+  "category": "Fiction",
+  "supplier_country": "US"
+}
+```
+
+El listado usa paginación por número de página: `GET /books?page=2&page_size=20`. El tamaño predeterminado es 10 y el máximo es 100. La respuesta incluye `count`, `next`, `previous` y `results`. Los errores de entrada, incluido un ISBN inválido o duplicado, se devuelven como `400 Bad Request`. El precio sugerido y los timestamps son campos de solo lectura. `PUT` requiere todos los campos editables; no se habilitó `PATCH`.
+
+Para ejecutar las pruebas del modelo, serializer y CRUD:
 
 ```powershell
 python backend\manage.py test books.tests
