@@ -63,13 +63,13 @@ Django lee `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` desde variables de entorno de
 - [x] FASE 5 — Integración de tasas de cambio.
 - [x] FASE 6 — Cálculo del precio.
 - [x] FASE 7 — Tests.
-- [ ] FASE 8 — Frontend.
+- [x] FASE 8 — Frontend.
 - [ ] FASE 9 — Integración completa.
 - [ ] FASE 10 — Colección Postman.
 - [ ] FASE 11 — Documentación final.
 - [ ] FASE 12 — Docker (opcional).
 
-React y Vite se inicializarán en FASE 8. El cálculo de precio pertenece a la siguiente fase de negocio.
+React y Vite están inicializados en FASE 8. La integración completa de todos los flujos se revisará en FASE 9.
 
 ### Modelo `Book` (FASE 2)
 
@@ -151,6 +151,34 @@ Para ejecutar las pruebas del cálculo:
 ```powershell
 python backend\manage.py test books.tests.PriceCalculationTests
 ```
+
+### Aplicación frontend (FASE 8)
+
+En una terminal, inicia el backend:
+
+```powershell
+python backend\manage.py runserver
+```
+
+En otra terminal, inicia React/Vite:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Abre la URL indicada por Vite (por defecto `http://localhost:5173`). El proxy de desarrollo reenvía `/books` y `/health` a Django en `http://127.0.0.1:8000`; esto evita instalar y configurar CORS solo para desarrollo local. La SPA permite listar y paginar, filtrar por categoría/stock bajo, crear, editar, eliminar con confirmación y calcular el precio sugerido.
+
+Verificar frontend:
+
+```powershell
+cd frontend
+npm run lint
+npm run build
+```
+
+Consulta [frontend/README.md](./frontend/README.md) para instrucciones y detalles del proxy.
 
 ### Suite de pruebas backend (FASE 7)
 
