@@ -124,7 +124,7 @@ En Docker Compose:
 docker compose exec backend python manage.py seed_demo_books
 ```
 
-El comando es idempotente: omite los ISBN que ya existan y no modifica ni elimina libros guardados. Se puede volver a ejecutar sin duplicar el catálogo.
+El comando es idempotente: omite los ISBN que ya existan y no modifica ni elimina libros guardados. Se puede volver a ejecutar sin duplicar el catálogo. Una migración elimina el antiguo registro de prueba independiente de Harry Potter (ISBN `9782123456803`) para dejar únicamente los 200 registros del catálogo dummy.
 
 El inventario se puede visualizar como tabla o como tarjetas desde el selector junto a los resultados. Ambas vistas conservan acciones, filtros y paginación, y muestran skeletons mientras se cargan los libros.
 
