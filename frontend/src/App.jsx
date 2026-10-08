@@ -222,7 +222,13 @@ function App() {
       <main className="main-content">
         <header className="topbar">
           <div className="breadcrumb"><span>Workspace</span><b>/</b><strong>Inventario</strong></div>
-          <div className="topbar-right"><span className="system-status"><i /> API conectada</span><span className="avatar avatar-small">BI</span></div>
+          <div className="topbar-right">
+            <span className={`system-status${loading ? ' system-status-loading' : loadError ? ' system-status-error' : ''}`} role="status">
+              <i />
+              {loading ? 'Conectando con API…' : loadError ? 'Error al consultar API' : 'API conectada'}
+            </span>
+            <span className="avatar avatar-small">BI</span>
+          </div>
         </header>
 
         <div className="page-content">

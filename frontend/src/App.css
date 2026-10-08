@@ -190,6 +190,18 @@
   background: #67aa76;
 }
 
+.system-status-loading i {
+  background: #d9a441;
+}
+
+.system-status-error {
+  color: #a94438;
+}
+
+.system-status-error i {
+  background: #c65a4e;
+}
+
 .avatar-small {
   width: 29px;
   height: 29px;

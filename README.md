@@ -64,12 +64,12 @@ Django lee `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` desde variables de entorno de
 - [x] FASE 6 — Cálculo del precio.
 - [x] FASE 7 — Tests.
 - [x] FASE 8 — Frontend.
-- [ ] FASE 9 — Integración completa.
+- [x] FASE 9 — Integración completa.
 - [ ] FASE 10 — Colección Postman.
 - [ ] FASE 11 — Documentación final.
 - [ ] FASE 12 — Docker (opcional).
 
-React y Vite están inicializados en FASE 8. La integración completa de todos los flujos se revisará en FASE 9.
+React y Vite se inicializaron en FASE 8; la comunicación completa con la API y la presentación de errores se verificaron en FASE 9.
 
 ### Modelo `Book` (FASE 2)
 
@@ -179,6 +179,21 @@ npm run build
 ```
 
 Consulta [frontend/README.md](./frontend/README.md) para instrucciones y detalles del proxy.
+
+### Integración end-to-end (FASE 9)
+
+La SPA usa el proxy de Vite para enviar las operaciones de inventario a Django; Django valida los datos y persiste los cambios mediante el modelo `Book`. Para el cálculo de precio, Django coordina `PriceCalculationService` y `ExchangeRateService`, guarda el precio y devuelve los datos que presenta el diálogo de resultado.
+
+La integración se verificó de extremo a extremo en el navegador: creación, listado, búsqueda por categoría, filtro de stock bajo, edición, cálculo de precio y eliminación con confirmación. También se comprobaron las respuestas de error de validación y de tasa no disponible; el frontend conserva el formulario o presenta una notificación y el indicador superior refleja los errores al consultar el API. Los fallos de proveedor y el `503` se cubren además con respuestas simuladas en las pruebas backend, sin depender de la disponibilidad externa.
+
+Para repetir la verificación backend:
+
+```powershell
+cd backend
+.venv\Scripts\python.exe manage.py test books.tests
+```
+
+Las comprobaciones de lint y compilación frontend se ejecutan desde `frontend/` según las instrucciones de la sección anterior.
 
 ### Suite de pruebas backend (FASE 7)
 
