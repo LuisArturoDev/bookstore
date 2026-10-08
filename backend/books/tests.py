@@ -2,7 +2,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import requests
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.db import IntegrityError, transaction
 from django.test import SimpleTestCase, TestCase, override_settings
 from rest_framework import status
@@ -177,6 +177,19 @@ class BookSerializerTests(TestCase):
         self.assertFalse(serializer.is_valid())
         self.assertIn('isbn', serializer.errors)
 
+    def test_rejects_invalid_country_code_and_excess_cost_precision(self):
+        invalid_country = BookSerializer(
+            data=make_book_data(supplier_country='usa')
+        )
+        excess_precision = BookSerializer(
+            data=make_book_data(cost_usd='12.501')
+        )
+
+        self.assertFalse(invalid_country.is_valid())
+        self.assertIn('supplier_country', invalid_country.errors)
+        self.assertFalse(excess_precision.is_valid())
+        self.assertIn('cost_usd', excess_precision.errors)
+
 
 def make_isbn13(number):
     prefix = f'978{number:09d}'
@@ -270,6 +283,29 @@ class BookCRUDAPITests(APITestCase):
         self.assertIsNotNone(second_page.data['previous'])
         self.assertEqual(len(larger_page.data['results']), 12)
 
+    def test_list_caps_requested_page_size_at_one_hundred(self):
+        Book.objects.bulk_create(
+            [
+                Book(
+                    title=f'Book {number}',
+                    author='Test Author',
+                    isbn=make_isbn13(number),
+                    cost_usd=Decimal('12.50'),
+                    stock_quantity=5,
+                    category='Fiction',
+                    supplier_country='US',
+                )
+                for number in range(1, 102)
+            ]
+        )
+
+        response = self.client.get(self.list_url, {'page_size': 101})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 101)
+        self.assertEqual(len(response.data['results']), 100)
+        self.assertIsNotNone(response.data['next'])
+
     def test_list_returns_empty_page_when_there_are_no_books(self):
         response = self.client.get(self.list_url)
 
@@ -333,6 +369,21 @@ class BookCRUDAPITests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_put_rejects_duplicate_normalized_isbn(self):
+        existing_book = Book.objects.create(**make_book_data(number=1))
+        book_to_update = Book.objects.create(**make_book_data(number=2))
+
+        response = self.client.put(
+            f'{self.list_url}/{book_to_update.pk}',
+            make_book_data(number=3, isbn=f' {existing_book.isbn[:3]}-{existing_book.isbn[3:]} '),
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('isbn', response.data)
+        book_to_update.refresh_from_db()
+        self.assertEqual(book_to_update.isbn, make_isbn13(2))
 
     def test_delete_returns_204_and_unknown_id_is_404(self):
         book = Book.objects.create(**make_book_data())
@@ -462,6 +513,15 @@ class ExchangeRateServiceTests(SimpleTestCase):
         self.assertTrue(result.used_fallback)
 
     @patch('books.services.exchange_rate_service.requests.get')
+    def test_connection_error_uses_configured_fallback(self, get):
+        get.side_effect = requests.ConnectionError('connection failed')
+
+        result = ExchangeRateService().get_rate()
+
+        self.assertEqual(result.rate, Decimal('0.85'))
+        self.assertTrue(result.used_fallback)
+
+    @patch('books.services.exchange_rate_service.requests.get')
     def test_http_error_uses_configured_fallback(self, get):
         response = Mock()
         response.raise_for_status.side_effect = requests.HTTPError('503')
@@ -494,6 +554,34 @@ class ExchangeRateServiceTests(SimpleTestCase):
 
         self.assertEqual(result.rate, Decimal('0.85'))
         self.assertTrue(result.used_fallback)
+
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_malformed_payload_values_use_configured_fallback(self, get):
+        response = Mock()
+        get.return_value = response
+
+        invalid_payloads = [
+            [],
+            {'rates': []},
+            {'rates': {'EUR': 'not-a-number'}},
+            {'rates': {'EUR': True}},
+            {'rates': {'EUR': 'Infinity'}},
+        ]
+        for payload in invalid_payloads:
+            with self.subTest(payload=payload):
+                response.json.return_value = payload
+                result = ExchangeRateService().get_rate()
+
+                self.assertEqual(result.rate, Decimal('0.85'))
+                self.assertTrue(result.used_fallback)
+
+    @override_settings(LOCAL_CURRENCY='EU')
+    @patch('books.services.exchange_rate_service.requests.get')
+    def test_invalid_currency_configuration_fails_before_http_request(self, get):
+        with self.assertRaises(ImproperlyConfigured):
+            ExchangeRateService().get_rate()
+
+        get.assert_not_called()
 
     @override_settings(DEFAULT_EXCHANGE_RATE='NaN')
     @patch('books.services.exchange_rate_service.requests.get')

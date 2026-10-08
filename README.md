@@ -62,7 +62,7 @@ Django lee `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` desde variables de entorno de
 - [x] FASE 4 — Filtros.
 - [x] FASE 5 — Integración de tasas de cambio.
 - [x] FASE 6 — Cálculo del precio.
-- [ ] FASE 7 — Tests.
+- [x] FASE 7 — Tests.
 - [ ] FASE 8 — Frontend.
 - [ ] FASE 9 — Integración completa.
 - [ ] FASE 10 — Colección Postman.
@@ -150,6 +150,16 @@ Para ejecutar las pruebas del cálculo:
 
 ```powershell
 python backend\manage.py test books.tests.PriceCalculationTests
+```
+
+### Suite de pruebas backend (FASE 7)
+
+La suite cubre validación del modelo/serializer, CRUD, filtros, paginación, servicio de tasas y cálculo del precio, incluidos los principales errores esperados. Las respuestas y fallos del proveedor externo se simulan, por lo que los tests no necesitan acceso a Internet.
+
+Desde la raíz del repositorio, ejecuta todas las pruebas backend con:
+
+```powershell
+python backend\manage.py test books.tests
 ```
 
 ## Contexto de la prueba
