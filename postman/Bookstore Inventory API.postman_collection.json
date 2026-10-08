@@ -1,0 +1,428 @@
+{
+  "info": {
+    "_postman_id": "4f95658b-12c0-4eb0-8fc8-5fba7d703510",
+    "name": "Bookstore Inventory API",
+    "description": "Colección para probar la API del inventario. Inicia Django en http://127.0.0.1:8000 antes de ejecutar las solicitudes. Ejecuta Create Book primero: genera un ISBN-13 válido, crea un libro de prueba y guarda su ID para las solicitudes dependientes. Ejecuta Delete Book al final para limpiar ese registro. El cálculo puede devolver 200 con tasa externa o fallback, 404 para un ID inexistente o 503 cuando ambas tasas no están disponibles.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Books",
+      "item": [
+        {
+          "name": "Create Book",
+          "description": "Crea un libro de prueba con un ISBN-13 válido y nuevo. Guarda el ID de la respuesta en la variable book_id.",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const digits = String(Date.now()).slice(-9).padStart(9, '0');",
+                  "const prefix = `978${digits}`;",
+                  "const sum = [...prefix].reduce((total, digit, index) => total + Number(digit) * (index % 2 === 0 ? 1 : 3), 0);",
+                  "pm.collectionVariables.set('book_isbn', `${prefix}${(10 - (sum % 10)) % 10}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 201 Created', () => pm.response.to.have.status(201));",
+                  "const book = pm.response.json();",
+                  "pm.test('Returns the created book and server fields', () => {",
+                  "  pm.expect(book).to.have.property('id');",
+                  "  pm.expect(book).to.have.property('isbn', pm.collectionVariables.get('book_isbn'));",
+                  "  pm.expect(book).to.have.property('selling_price_local', null);",
+                  "  pm.expect(book).to.have.property('created_at');",
+                  "  pm.expect(book).to.have.property('updated_at');",
+                  "});",
+                  "pm.collectionVariables.set('book_id', String(book.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Test Book\",\n  \"author\": \"Bookstore API\",\n  \"isbn\": \"{{book_isbn}}\",\n  \"cost_usd\": \"15.99\",\n  \"stock_quantity\": 5,\n  \"category\": \"Fiction\",\n  \"supplier_country\": \"US\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/books",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books"
+              ]
+            },
+            "description": "Ejemplo de petición: JSON con title, author, isbn, cost_usd, stock_quantity, category y supplier_country. Espera 201 y un objeto Book serializado."
+          },
+          "response": []
+        },
+        {
+          "name": "List Books",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200 OK', () => pm.response.to.have.status(200));",
+                  "const page = pm.response.json();",
+                  "pm.test('Returns the paginated response shape', () => {",
+                  "  pm.expect(page).to.have.property('count').that.is.a('number');",
+                  "  pm.expect(page).to.have.property('results').that.is.an('array');",
+                  "  pm.expect(page).to.have.property('next');",
+                  "  pm.expect(page).to.have.property('previous');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books?page={{page}}&page_size={{page_size}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "page_size",
+                  "value": "{{page_size}}"
+                }
+              ]
+            },
+            "description": "Ejemplo de respuesta: { \"count\": 1, \"next\": null, \"previous\": null, \"results\": [{ \"id\": 1, \"title\": \"...\" }] }. El tamaño predeterminado es 10 y el máximo 100."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Book",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200 OK for the created book', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns the requested book', () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('book_id'))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books/{{book_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books",
+                "{{book_id}}"
+              ]
+            },
+            "description": "Obtiene el libro creado por Create Book. Devuelve 404 si el ID no existe."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Book",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns the updated values', () => {",
+                  "  const book = pm.response.json();",
+                  "  pm.expect(book.title).to.eql('Postman Updated Book');",
+                  "  pm.expect(book.stock_quantity).to.eql(8);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Updated Book\",\n  \"author\": \"Bookstore API\",\n  \"isbn\": \"{{book_isbn}}\",\n  \"cost_usd\": \"16.50\",\n  \"stock_quantity\": 8,\n  \"category\": \"Fiction\",\n  \"supplier_country\": \"US\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/books/{{book_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books",
+                "{{book_id}}"
+              ]
+            },
+            "description": "PUT reemplaza todos los campos editables; por eso el ejemplo incluye todos los datos requeridos. Devuelve 400 para datos inválidos y 404 para un ID inexistente."
+          },
+          "response": []
+        },
+        {
+          "name": "Search by Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200 OK', () => pm.response.to.have.status(200));",
+                  "const page = pm.response.json();",
+                  "pm.test('Returns paginated category matches', () => {",
+                  "  pm.expect(page.results).to.be.an('array');",
+                  "  pm.expect(page.results.every((book) => book.category.toLowerCase() === pm.collectionVariables.get('category').toLowerCase())).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books/search?category={{category}}&page={{page}}&page_size={{page_size}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "{{category}}"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "page_size",
+                  "value": "{{page_size}}"
+                }
+              ]
+            },
+            "description": "La categoría se compara sin distinguir mayúsculas/minúsculas. Una categoría vacía devuelve 400."
+          },
+          "response": []
+        },
+        {
+          "name": "Low Stock",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200 OK', () => pm.response.to.have.status(200));",
+                  "const page = pm.response.json();",
+                  "const threshold = Number(pm.collectionVariables.get('threshold'));",
+                  "pm.test('All returned books are at or below the threshold', () => {",
+                  "  pm.expect(page.results.every((book) => book.stock_quantity <= threshold)).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books/low-stock?threshold={{threshold}}&page={{page}}&page_size={{page_size}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books",
+                "low-stock"
+              ],
+              "query": [
+                {
+                  "key": "threshold",
+                  "value": "{{threshold}}"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "page_size",
+                  "value": "{{page_size}}"
+                }
+              ]
+            },
+            "description": "El filtro es inclusivo (stock_quantity <= threshold). El umbral predeterminado es 10; un umbral no entero o negativo devuelve 400."
+          },
+          "response": []
+        },
+        {
+          "name": "Calculate Price",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200 OK when an exchange rate or fallback is available', () => pm.response.to.have.status(200));",
+                  "const result = pm.response.json();",
+                  "pm.test('Returns the persisted price calculation details', () => {",
+                  "  pm.expect(result.book_id).to.eql(Number(pm.collectionVariables.get('book_id')));",
+                  "  pm.expect(result.margin_percentage).to.eql(40);",
+                  "  pm.expect(result.selling_price_local).to.be.a('number');",
+                  "  pm.expect(result.currency).to.be.a('string');",
+                  "  pm.expect(result.used_fallback).to.be.a('boolean');",
+                  "  pm.expect(result.calculation_timestamp).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/books/{{book_id}}/calculate-price",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books",
+                "{{book_id}}",
+                "calculate-price"
+              ]
+            },
+            "description": "Ejemplo de respuesta 200: contiene book_id, cost_usd, exchange_rate, cost_local, margin_percentage, selling_price_local, currency, used_fallback y calculation_timestamp. Devuelve 404 si el libro no existe; puede devolver 503 si no hay tasa válida ni fallback."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Book",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 204 No Content', () => pm.response.to.have.status(204));",
+                  "pm.collectionVariables.unset('book_id');",
+                  "pm.collectionVariables.unset('book_isbn');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books/{{book_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books",
+                "{{book_id}}"
+              ]
+            },
+            "description": "Elimina el libro de prueba creado por Create Book y limpia las variables book_id y book_isbn. Devuelve 404 si el ID no existe."
+          },
+          "response": []
+        }
+      ],
+      "description": "Flujo de prueba recomendado: Create Book → List Books → Get Book → Update Book → Search by Category → Low Stock → Calculate Price → Delete Book."
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "book_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "book_isbn",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "category",
+      "value": "Fiction",
+      "type": "string"
+    },
+    {
+      "key": "threshold",
+      "value": "10",
+      "type": "string"
+    },
+    {
+      "key": "page",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "page_size",
+      "value": "10",
+      "type": "string"
+    }
+  ]
+}

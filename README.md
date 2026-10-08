@@ -65,7 +65,7 @@ Django lee `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` desde variables de entorno de
 - [x] FASE 7 — Tests.
 - [x] FASE 8 — Frontend.
 - [x] FASE 9 — Integración completa.
-- [ ] FASE 10 — Colección Postman.
+- [x] FASE 10 — Colección Postman.
 - [ ] FASE 11 — Documentación final.
 - [ ] FASE 12 — Docker (opcional).
 
@@ -194,6 +194,10 @@ cd backend
 ```
 
 Las comprobaciones de lint y compilación frontend se ejecutan desde `frontend/` según las instrucciones de la sección anterior.
+
+### Colección Postman (FASE 10)
+
+Importa [Bookstore Inventory API.postman_collection.json](./postman/Bookstore%20Inventory%20API.postman_collection.json) en Postman y asegúrate de que Django está activo en `http://127.0.0.1:8000` (o cambia `base_url`). Ejecuta `Create Book` primero para crear el libro de prueba y guardar su ID; después puedes ejecutar las consultas, actualización y cálculo. Ejecuta `Delete Book` al final para borrar el registro de prueba. La colección incluye comprobaciones de estado/respuesta y genera un ISBN-13 válido para cada alta.
 
 ### Suite de pruebas backend (FASE 7)
 
