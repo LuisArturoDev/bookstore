@@ -42,6 +42,7 @@ Desde la raíz del repositorio, en PowerShell:
 py -3 -m venv backend\.venv
 backend\.venv\Scripts\Activate.ps1
 python -m pip install -r backend\requirements.txt
+python backend\manage.py makemigrations books
 python backend\manage.py migrate
 python backend\manage.py runserver
 ```
@@ -68,7 +69,15 @@ Django lee `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` desde variables de entorno de
 - [ ] FASE 11 — Documentación final.
 - [ ] FASE 12 — Docker (opcional).
 
-React y Vite se inicializarán en FASE 8. El CRUD, los modelos de negocio, las tasas de cambio y el cálculo de precio pertenecen a fases posteriores.
+React y Vite se inicializarán en FASE 8. El CRUD, los filtros, las tasas de cambio y el cálculo de precio pertenecen a fases posteriores.
+
+### Modelo `Book` (FASE 2)
+
+El modelo persistente contiene los datos del libro, valida y normaliza ISBN-10/ISBN-13, impide ISBN duplicados y aplica restricciones de costo positivo y stock no negativo. `selling_price_local` permanece nulo hasta una fase posterior. Para ejecutar las pruebas del modelo y su serializer:
+
+```powershell
+python backend\manage.py test books.tests
+```
 
 ## Contexto de la prueba
 
